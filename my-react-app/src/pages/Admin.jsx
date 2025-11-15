@@ -52,6 +52,12 @@ const initialNewQuestionState = {
 
 // [c-m] This function will be called by useQuery
 const fetchAdminData = async () => {
+  // Verify session is still valid before fetching
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    throw new Error("Session expired. Please sign in again.");
+  }
+
   const [questionsCount, usersCount, attemptsCount, questionsData] = await Promise.all([
     supabase.from("questions").select("id", { count: "exact", head: true }),
     supabase.from("profiles").select("id", { count: "exact", head: true }),
@@ -59,7 +65,13 @@ const fetchAdminData = async () => {
     supabase.from("questions").select("*").order("created_at", { ascending: false }),
   ]);
 
-  if (questionsData.error) throw questionsData.error;
+  // Handle auth errors
+  if (questionsData.error) {
+    if (questionsData.error.code === 'PGRST301' || questionsData.error.message?.includes('JWT')) {
+      throw new Error("Session expired. Please sign in again.");
+    }
+    throw questionsData.error;
+  }
 
   const stats = {
     totalQuestions: questionsCount.count ?? 0,
@@ -100,11 +112,13 @@ export default function Admin() {
   const {
     data,
     isLoading: dataLoading,
+    error: dataError,
     refetch, // We'll use this to refresh data after changes
   } = useQuery({
     queryKey: ["adminData"],
     queryFn: fetchAdminData,
-    enabled: !!isAdmin, // IMPORTANT: Only run this query if the user is an admin
+    enabled: !authLoading && !!isAdmin, // IMPORTANT: Only run this query if auth is loaded and user is an admin
+    retry: 1,
   });
 
   // [c-m] Handlers are now simpler, just call refetch() on success
@@ -177,6 +191,20 @@ export default function Admin() {
   }, [allQuestions, searchQuery, domainFilter, levelFilter]);
 
   // [c-m] 3. Simplified Loading: Show one loader if auth is checking OR data is fetching
+  // Handle session expiration errors
+  useEffect(() => {
+    if (dataError) {
+      if (dataError.message?.includes("Session expired")) {
+        toast({
+          title: "Session expired",
+          description: "Please sign in again.",
+          variant: "destructive",
+        });
+        navigate("/auth");
+      }
+    }
+  }, [dataError, navigate, toast]);
+
   if (authLoading || (isAdmin && dataLoading)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">

@@ -6,19 +6,21 @@ export const useAuth = () => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const initialLoadCompleteRef = useRef(false);
+  const mountedRef = useRef(true);
 
   const checkAdminStatus = async (userId) => {
-    if (!userId) {
+    if (!userId || !mountedRef.current) {
       setIsAdmin(false);
       return;
     }
 
     try {
       const { data, error } = await supabase.rpc("has_role", {
-        _role: "admin",
         _user_id: userId,
+        _role: "admin",
       });
+
+      if (!mountedRef.current) return;
 
       if (!error && data) {
         setIsAdmin(data);
@@ -27,57 +29,58 @@ export const useAuth = () => {
       }
     } catch (error) {
       console.error("Error checking admin status:", error);
-      setIsAdmin(false);
+      if (mountedRef.current) {
+        setIsAdmin(false);
+      }
     }
   };
 
   useEffect(() => {
     let mounted = true;
 
-    // Get initial session
-    const getInitialSession = async () => {
+    // Get initial session immediately - this is critical for page refreshes
+    const initializeAuth = async () => {
       try {
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
         if (!mounted) return;
 
         if (error) {
-          console.error("Error getting session:", error);
+          console.error("Error getting initial session:", error);
           setLoading(false);
           return;
         }
 
+        console.log("Initial session loaded:", initialSession?.user?.email || "No user");
+        
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
-        
+
         if (initialSession?.user) {
           await checkAdminStatus(initialSession.user.id);
         } else {
           setIsAdmin(false);
         }
-        
-        initialLoadCompleteRef.current = true;
+
         setLoading(false);
       } catch (error) {
-        console.error("Error in getInitialSession:", error);
+        console.error("Error initializing auth:", error);
         if (mounted) {
           setLoading(false);
         }
       }
     };
 
-    getInitialSession();
+    // Load initial session first
+    initializeAuth();
 
-    // Listen for auth state changes
+    // Then set up listener for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         if (!mounted) return;
 
-        // Skip the initial session event since we already handled it
-        if (event === 'INITIAL_SESSION') {
-          return;
-        }
-
+        console.log("Auth state change:", event, newSession?.user?.email || "No user");
+        
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
@@ -88,28 +91,38 @@ export const useAuth = () => {
         }
 
         // Set loading to false after processing auth state change
-        // Always set it for sign in/out events, or if initial load is complete
-        if (initialLoadCompleteRef.current || event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     );
 
     return () => {
       mounted = false;
+      mountedRef.current = false;
       subscription.unsubscribe();
     };
   }, []);
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      // Clear local state (auth state change will also handle this, but we do it immediately)
+      // Clear state first to prevent race conditions
       setUser(null);
       setSession(null);
       setIsAdmin(false);
+      
+      // Then sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Clear any cached data
+      if (typeof window !== 'undefined') {
+        // Clear localStorage items related to auth
+        const keys = Object.keys(localStorage);
+        keys.forEach(key => {
+          if (key.startsWith('sb-') || key.includes('supabase')) {
+            localStorage.removeItem(key);
+          }
+        });
+      }
     } catch (error) {
       console.error("Error signing out:", error);
       throw error;

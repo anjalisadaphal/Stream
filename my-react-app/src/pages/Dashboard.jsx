@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   User,
   Mail,
@@ -31,6 +32,12 @@ import { useQuery } from "@tanstack/react-query"; // [c-m] Import useQuery
 
 // Optimized function to fetch all dashboard data in parallel
 const fetchDashboardData = async (userId) => {
+  // Verify session is still valid before fetching
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    throw new Error("Session expired. Please sign in again.");
+  }
+
   // Fetch both profile and attempts in parallel for better performance
   const [profileResult, attemptsResult] = await Promise.all([
     supabase
@@ -45,8 +52,20 @@ const fetchDashboardData = async (userId) => {
       .order("completed_at", { ascending: true }),
   ]);
 
-  if (profileResult.error) throw new Error(`Profile fetch error: ${profileResult.error.message}`);
-  if (attemptsResult.error) throw new Error(`Attempts fetch error: ${attemptsResult.error.message}`);
+  // Handle auth errors
+  if (profileResult.error) {
+    if (profileResult.error.code === 'PGRST301' || profileResult.error.message?.includes('JWT')) {
+      throw new Error("Session expired. Please sign in again.");
+    }
+    throw new Error(`Profile fetch error: ${profileResult.error.message}`);
+  }
+  
+  if (attemptsResult.error) {
+    if (attemptsResult.error.code === 'PGRST301' || attemptsResult.error.message?.includes('JWT')) {
+      throw new Error("Session expired. Please sign in again.");
+    }
+    throw new Error(`Attempts fetch error: ${attemptsResult.error.message}`);
+  }
 
   return { profile: profileResult.data, attempts: attemptsResult.data || [] };
 };

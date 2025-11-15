@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Clock, Flag, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Clock, Flag, ChevronLeft, ChevronRight, Loader2, Sparkles } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { generateQuizQuestions, generateFallbackQuestions } from "@/services/aiService";
 
 export default function Quiz() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function Quiz() {
   const [markedForReview, setMarkedForReview] = useState(new Set());
   const [timeLeft, setTimeLeft] = useState(30 * 60);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitRef = useRef(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -31,26 +33,96 @@ export default function Quiz() {
   useEffect(() => {
     const loadQuestions = async () => {
       try {
-        const { data, error } = await supabase
+        // First, try to generate dynamic questions using AI
+        toast({
+          title: "Generating your personalized quiz...",
+          description: "Creating unique questions just for you!",
+        });
+
+        let generatedQuestions = [];
+        
+        try {
+          // Try to generate questions using AI
+          generatedQuestions = await generateQuizQuestions();
+          
+          if (generatedQuestions && generatedQuestions.length >= 30) {
+            // Save generated questions to database for future use
+            const questionsToSave = generatedQuestions.map((q) => ({
+              question_text: q.question_text,
+              option_1: q.option_1,
+              option_2: q.option_2,
+              option_3: q.option_3,
+              option_4: q.option_4,
+              correct_answer: q.correct_answer,
+              domain: q.domain,
+              difficulty: q.difficulty,
+            }));
+
+            // Save to database (optional - for caching)
+            await supabase.from("questions").upsert(questionsToSave, {
+              onConflict: "question_text",
+              ignoreDuplicates: true,
+            });
+
+            setQuestions(generatedQuestions);
+            toast({
+              title: "Quiz ready!",
+              description: "Your personalized assessment is ready.",
+            });
+            setLoading(false);
+            return;
+          }
+        } catch (aiError) {
+          console.warn("AI generation failed, trying fallback:", aiError);
+          // Fall through to database/fallback
+        }
+
+        // Fallback: Try to get questions from database
+        // Verify session before querying
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          throw new Error("Session expired. Please sign in again.");
+        }
+
+        const { data: dbQuestions, error: dbError } = await supabase
           .from("questions")
           .select("*")
           .limit(30);
 
-        if (error) throw error;
+        if (dbError) {
+          if (dbError.code === 'PGRST301' || dbError.message?.includes('JWT')) {
+            throw new Error("Session expired. Please sign in again.");
+          }
+          throw dbError;
+        }
 
-        if (data && data.length > 0) {
-          setQuestions(data);
-        } else {
+        if (dbQuestions && dbQuestions.length >= 30) {
+          // Shuffle database questions for variety
+          const shuffled = [...dbQuestions].sort(() => Math.random() - 0.5);
+          setQuestions(shuffled.slice(0, 30));
           toast({
-            title: "No questions available",
-            description: "Please contact the administrator to add questions.",
-            variant: "destructive",
+            title: "Quiz loaded!",
+            description: "Starting your assessment.",
           });
+        } else {
+          // Last resort: Use fallback questions
+          const fallbackQuestions = generateFallbackQuestions();
+          if (fallbackQuestions.length > 0) {
+            setQuestions(fallbackQuestions);
+            toast({
+              title: "Using sample questions",
+              description: "Limited questions available. Contact admin to add more.",
+              variant: "default",
+            });
+          } else {
+            throw new Error("No questions available from any source");
+          }
         }
       } catch (error) {
+        console.error("Error loading questions:", error);
         toast({
           title: "Error loading questions",
-          description: error.message,
+          description: error.message || "Please try again or contact support.",
           variant: "destructive",
         });
       } finally {
@@ -63,6 +135,136 @@ export default function Quiz() {
     }
   }, [user, toast]);
 
+  const handleSubmit = useCallback(async () => {
+    if (isSubmitting || !user || submitRef.current) return;
+    submitRef.current = true;
+    setIsSubmitting(true);
+
+    try {
+      const scores = { programmer: 0, analytics: 0, tester: 0 };
+      const responses = [];
+
+      // First, ensure all questions have database IDs
+      // If questions were generated dynamically, save them to DB first
+      const questionsWithIds = [];
+      for (let i = 0; i < questions.length; i++) {
+        const question = questions[i];
+        if (!question.id) {
+          // Question doesn't have an ID, check if it exists in DB first
+          const { data: existingQuestion } = await supabase
+            .from("questions")
+            .select("id")
+            .eq("question_text", question.question_text)
+            .single();
+
+          if (existingQuestion?.id) {
+            // Question already exists, use its ID
+            questionsWithIds.push({ ...question, id: existingQuestion.id });
+          } else {
+            // Question doesn't exist, insert it
+            const { data: savedQuestion, error: saveError } = await supabase
+              .from("questions")
+              .insert({
+                question_text: question.question_text,
+                option_1: question.option_1,
+                option_2: question.option_2,
+                option_3: question.option_3,
+                option_4: question.option_4,
+                correct_answer: question.correct_answer,
+                domain: question.domain,
+                difficulty: question.difficulty,
+              })
+              .select()
+              .single();
+
+            if (saveError) {
+              console.error("Error saving question to database:", saveError);
+              // Skip this question if we can't save it
+              continue;
+            }
+            questionsWithIds.push(savedQuestion);
+          }
+        } else {
+          questionsWithIds.push(question);
+        }
+      }
+
+      // Now calculate scores and responses with valid question IDs
+      questionsWithIds.forEach((question, index) => {
+        const originalIndex = questions.findIndex(q => 
+          q.question_text === question.question_text
+        );
+        const selectedAnswer = answers[originalIndex];
+        if (selectedAnswer !== undefined && question.id) {
+          const isCorrect = selectedAnswer + 1 === question.correct_answer;
+          if (isCorrect) {
+            scores[question.domain]++;
+          }
+          responses.push({
+            question_id: question.id,
+            selected_answer: selectedAnswer + 1,
+            is_correct: isCorrect,
+          });
+        }
+      });
+
+      const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
+      const recommendedDomain =
+        scores.programmer >= scores.analytics && scores.programmer >= scores.tester
+          ? "programmer"
+          : scores.analytics >= scores.tester
+          ? "analytics"
+          : "tester";
+
+      // Verify session before submitting
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Session expired. Please sign in again and retake the quiz.");
+      }
+
+      const { data: attemptData, error: attemptError } = await supabase
+        .from("quiz_attempts")
+        .insert({
+          user_id: user.id,
+          recommended_domain: recommendedDomain,
+          programmer_score: scores.programmer,
+          analytics_score: scores.analytics,
+          tester_score: scores.tester,
+          total_score: totalScore,
+        })
+        .select()
+        .single();
+
+      if (attemptError) {
+        if (attemptError.code === 'PGRST301' || attemptError.message?.includes('JWT')) {
+          throw new Error("Session expired. Please sign in again.");
+        }
+        throw attemptError;
+      }
+
+      const responsesWithAttemptId = responses.map((r) => ({
+        ...r,
+        attempt_id: attemptData.id,
+      }));
+
+      const { error: responsesError } = await supabase
+        .from("quiz_responses")
+        .insert(responsesWithAttemptId);
+
+      if (responsesError) throw responsesError;
+
+      navigate("/results", { state: { attemptId: attemptData.id } });
+    } catch (error) {
+      toast({
+        title: "Error submitting quiz",
+        description: error.message,
+        variant: "destructive",
+      });
+      submitRef.current = false;
+      setIsSubmitting(false);
+    }
+  }, [user, questions, answers, navigate, toast, isSubmitting]);
+
   useEffect(() => {
     if (loading) return;
 
@@ -70,7 +272,7 @@ export default function Quiz() {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          handleSubmit();
+          // Use a ref or call handleSubmit directly
           return 0;
         }
         return prev - 1;
@@ -79,6 +281,13 @@ export default function Quiz() {
 
     return () => clearInterval(timer);
   }, [loading]);
+
+  // Separate effect to handle auto-submit when time runs out
+  useEffect(() => {
+    if (timeLeft === 0 && !isSubmitting && questions.length > 0 && user && !submitRef.current) {
+      handleSubmit();
+    }
+  }, [timeLeft, isSubmitting, questions.length, user, handleSubmit]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -104,74 +313,6 @@ export default function Quiz() {
       newMarked.add(currentQuestion);
     }
     setMarkedForReview(newMarked);
-  };
-
-  const handleSubmit = async () => {
-    if (isSubmitting || !user) return;
-    setIsSubmitting(true);
-
-    try {
-      const scores = { programmer: 0, analytics: 0, tester: 0 };
-      const responses = [];
-
-      questions.forEach((question, index) => {
-        const selectedAnswer = answers[index];
-        if (selectedAnswer !== undefined) {
-          const isCorrect = selectedAnswer + 1 === question.correct_answer;
-          if (isCorrect) {
-            scores[question.domain]++;
-          }
-          responses.push({
-            question_id: question.id,
-            selected_answer: selectedAnswer + 1,
-            is_correct: isCorrect,
-          });
-        }
-      });
-
-      const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
-      const recommendedDomain =
-        scores.programmer >= scores.analytics && scores.programmer >= scores.tester
-          ? "programmer"
-          : scores.analytics >= scores.tester
-          ? "analytics"
-          : "tester";
-
-      const { data: attemptData, error: attemptError } = await supabase
-        .from("quiz_attempts")
-        .insert({
-          user_id: user.id,
-          recommended_domain: recommendedDomain,
-          programmer_score: scores.programmer,
-          analytics_score: scores.analytics,
-          tester_score: scores.tester,
-          total_score: totalScore,
-        })
-        .select()
-        .single();
-
-      if (attemptError) throw attemptError;
-
-      const responsesWithAttemptId = responses.map((r) => ({
-        ...r,
-        attempt_id: attemptData.id,
-      }));
-
-      const { error: responsesError } = await supabase
-        .from("quiz_responses")
-        .insert(responsesWithAttemptId);
-
-      if (responsesError) throw responsesError;
-
-      navigate("/results", { state: { attemptId: attemptData.id } });
-    } catch (error) {
-      toast({
-        title: "Error submitting quiz",
-        description: error.message,
-        variant: "destructive",
-      });
-      setIsSubmitting(false);
-    }
   };
 
   if (authLoading || loading) {

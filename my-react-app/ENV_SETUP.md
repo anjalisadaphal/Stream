@@ -11,6 +11,9 @@ These are needed for the Supabase JavaScript client used in the React app:
 ```env
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key-here
+
+# OpenAI API Key (Required for AI-powered features)
+VITE_OPENAI_API_KEY=sk-your-openai-api-key-here
 ```
 
 **How to get these:**
@@ -18,6 +21,13 @@ VITE_SUPABASE_ANON_KEY=your-anon-key-here
 2. Navigate to Settings → API
 3. Copy the "Project URL" → use as `VITE_SUPABASE_URL`
 4. Copy the "anon public" key → use as `VITE_SUPABASE_ANON_KEY`
+
+**How to get OpenAI API Key:**
+1. Go to https://platform.openai.com/api-keys
+2. Sign in or create an account
+3. Click "Create new secret key"
+4. Copy the key and add it as `VITE_OPENAI_API_KEY`
+5. **Note:** The API key will be visible in client-side code. For production, consider using a backend proxy.
 
 ### Database Connection Strings (For Migrations/Server-side)
 
