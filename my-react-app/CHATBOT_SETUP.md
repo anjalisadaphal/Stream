@@ -24,19 +24,19 @@ The STREAM application now includes:
 
 ## Setup Instructions
 
-### 1. Get OpenAI API Key
+### 1. Get Gemini API Key
 
-1. Go to https://platform.openai.com/api-keys
-2. Sign in or create an account
-3. Click "Create new secret key"
-4. Copy the key (starts with `sk-`)
+1. Go to https://makersuite.google.com/app/apikey or https://aistudio.google.com/app/apikey
+2. Sign in with your Google account
+3. Click "Create API Key" or "Get API Key"
+4. Copy the key (starts with `AIza`)
 
 ### 2. Add to Environment Variables
 
 Add to your `.env` file:
 
 ```env
-VITE_OPENAI_API_KEY=sk-your-actual-api-key-here
+VITE_GEMINI_API_KEY=your-gemini-api-key-here
 ```
 
 ### 3. Restart Development Server
@@ -48,7 +48,7 @@ npm run dev
 ## How It Works
 
 ### Chatbot
-- Uses OpenAI GPT-4o-mini model for cost efficiency
+- Uses Google Gemini Pro model
 - System prompt includes STREAM platform information
 - Handles questions about features, careers, and assessment process
 - Falls back gracefully if API key is not configured
@@ -62,17 +62,18 @@ npm run dev
 
 ## API Costs
 
-- **Chatbot**: ~$0.001-0.002 per conversation (using GPT-4o-mini)
-- **Question Generation**: ~$0.05-0.10 per quiz (30 questions, 3 API calls)
+- **Chatbot**: Free tier available, then pay-as-you-go pricing
+- **Question Generation**: Free tier available, then pay-as-you-go pricing (30 questions, 3 API calls)
+- Check current pricing at: https://ai.google.dev/pricing
 
 **Cost Optimization Tips:**
 - Questions are cached in database to reduce API calls
 - Consider implementing rate limiting for production
-- Monitor usage in OpenAI dashboard
+- Monitor usage in Google AI Studio dashboard
 
 ## Security Notes
 
-⚠️ **Important**: The OpenAI API key is exposed in client-side code (VITE_ prefix).
+⚠️ **Important**: The Gemini API key is exposed in client-side code (VITE_ prefix).
 
 **For Production:**
 - Create a backend API proxy to hide the API key
@@ -83,14 +84,14 @@ npm run dev
 ## Troubleshooting
 
 ### Chatbot not responding
-- Check if `VITE_OPENAI_API_KEY` is set in `.env`
+- Check if `VITE_GEMINI_API_KEY` is set in `.env`
 - Restart dev server after adding the key
 - Check browser console for errors
-- Verify API key is valid in OpenAI dashboard
+- Verify API key is valid in Google AI Studio
 
 ### Questions not generating
 - Check API key configuration
-- Verify OpenAI account has credits
+- Verify Gemini API quota/limits
 - Check browser console for errors
 - System will fallback to database questions automatically
 
@@ -118,6 +119,6 @@ Edit `src/services/aiService.js` → `generateQuizQuestions()` function:
 For issues or questions:
 1. Check browser console for errors
 2. Verify environment variables are set correctly
-3. Check OpenAI API status: https://status.openai.com
-4. Review API usage in OpenAI dashboard
+3. Check Gemini API status: https://status.cloud.google.com
+4. Review API usage in Google AI Studio dashboard
 

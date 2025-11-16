@@ -1,5 +1,10 @@
-base = "my-react-app"
-
 [build]
-  command = "npm run build"
-  publish = "dist"
+  command = "cd my-react-app && npm install && npm run build"
+  publish = "my-react-app/dist"
+
+# Environment variables should be set in Netlify dashboard:
+# Site settings > Environment variables
+# Required variables:
+# - VITE_SUPABASE_URL
+# - VITE_SUPABASE_ANON_KEY
+# - VITE_GEMINI_API_KEY (optional, for AI features)

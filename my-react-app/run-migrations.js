@@ -7,8 +7,14 @@ const { Client } = pg;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Get connection string from environment or use direct URL
-const directUrl = process.env.DIRECT_URL || 'postgresql://postgres.vtndzgtkmnrdbrywfzlj:Anjali@1902@aws-1-ap-south-1.pooler.supabase.com:5432/postgres';
+// Get connection string from environment variable (REQUIRED)
+const directUrl = process.env.DIRECT_URL;
+
+if (!directUrl) {
+  console.error('❌ DIRECT_URL environment variable is required');
+  console.error('Please set DIRECT_URL in your .env file or environment variables');
+  process.exit(1);
+}
 
 const client = new Client({
   connectionString: directUrl,

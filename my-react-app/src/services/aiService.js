@@ -1,10 +1,12 @@
 /**
  * AI Service for generating questions and handling chatbot responses
- * Uses OpenAI API or can be configured to use other AI providers
+ * Uses Google Gemini API
  */
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
-const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+// Using gemini-1.5-flash for better availability and performance
+const GEMINI_MODEL = "gemini-1.5-flash";
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 /**
  * Generate 30 unique quiz questions dynamically
@@ -12,8 +14,8 @@ const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
  * @returns {Promise<Array>} Array of question objects
  */
 export async function generateQuizQuestions(existingQuestions = []) {
-  if (!OPENAI_API_KEY) {
-    throw new Error("OpenAI API key is not configured. Please set VITE_OPENAI_API_KEY in your .env file.");
+  if (!GEMINI_API_KEY) {
+    throw new Error("Gemini API key is not configured. Please set VITE_GEMINI_API_KEY in your .env file.");
   }
 
   const domains = ["programmer", "analytics", "tester"];
@@ -25,7 +27,7 @@ export async function generateQuizQuestions(existingQuestions = []) {
 
   for (const domain of domains) {
     try {
-      const prompt = `Generate ${questionsPerDomain} unique multiple-choice questions for a career assessment quiz in the ${domain} domain. 
+      const prompt = `You are a quiz question generator. Generate ${questionsPerDomain} unique multiple-choice questions for a career assessment quiz in the ${domain} domain. 
 Each question should have:
 - A clear, relevant question text
 - 4 answer options (option_1, option_2, option_3, option_4)
@@ -49,41 +51,48 @@ Return ONLY a valid JSON array with this exact structure:
   ...
 ]
 
-Make questions practical, relevant to real-world ${domain} work, and avoid generic questions.`;
+Make questions practical, relevant to real-world ${domain} work, and avoid generic questions. Always return valid JSON arrays only, no additional text.`;
 
-      const response = await fetch(OPENAI_API_URL, {
+      const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini", // Using cheaper model for cost efficiency
-          messages: [
-            {
-              role: "system",
-              content: "You are a quiz question generator. Always return valid JSON arrays only, no additional text.",
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          temperature: 0.8, // Higher temperature for more variety
-          max_tokens: 4000,
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.8,
+            maxOutputTokens: 4000,
+          },
         }),
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || "Failed to generate questions");
+        let errorMessage = "Failed to generate questions";
+        try {
+          const error = await response.json();
+          errorMessage = error.error?.message || error.message || errorMessage;
+        } catch (e) {
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
-      const content = data.choices[0]?.message?.content;
+      
+      // Check for safety ratings or blocked content
+      if (data.candidates?.[0]?.finishReason === 'SAFETY') {
+        throw new Error("Content was blocked by safety filters. Please try again.");
+      }
+      
+      const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
       
       if (!content) {
-        throw new Error("No content received from AI");
+        throw new Error("No content received from AI. The model may have been blocked or returned an empty response.");
       }
 
       // Parse JSON from response (handle markdown code blocks if present)
@@ -134,9 +143,9 @@ Make questions practical, relevant to real-world ${domain} work, and avoid gener
  * @returns {Promise<string>} AI response
  */
 export async function getChatbotResponse(messages) {
-  if (!OPENAI_API_KEY) {
+  if (!GEMINI_API_KEY) {
     // Fallback response if API key is not configured
-    return "I'm currently unavailable. Please configure the OpenAI API key to enable chatbot functionality.";
+    return "I'm currently unavailable. Please configure the Gemini API key to enable chatbot functionality.";
   }
 
   const systemPrompt = `You are a helpful assistant for STREAM (Smart Career Guidance System), a platform that helps users discover their career path in tech through assessments.
@@ -158,33 +167,64 @@ Be friendly, concise, and helpful. Answer questions about:
 Keep responses conversational and under 200 words when possible.`;
 
   try {
-    const response = await fetch(OPENAI_API_URL, {
+    // Get the last user message
+    const lastUserMessage = messages.filter(m => m.role === 'user').pop();
+    if (!lastUserMessage) {
+      return "I'm here to help! What would you like to know about STREAM?";
+    }
+
+    // Build conversation context
+    let conversationContext = systemPrompt + "\n\nConversation history:\n";
+    messages.slice(0, -1).forEach((msg) => {
+      const role = msg.role === 'assistant' ? 'Assistant' : 'User';
+      conversationContext += `${role}: ${msg.content}\n`;
+    });
+    conversationContext += `\nUser: ${lastUserMessage.content}\nAssistant:`;
+
+    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages.map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-        ],
-        temperature: 0.7,
-        max_tokens: 500,
+        contents: [{
+          parts: [{
+            text: conversationContext
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 500,
+        },
       }),
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || "Failed to get response");
+      let errorMessage = "Failed to get response";
+      try {
+        const error = await response.json();
+        errorMessage = error.error?.message || error.message || errorMessage;
+      } catch (e) {
+        errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      }
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
-    return data.choices[0]?.message?.content || "I'm sorry, I couldn't process that request.";
+    
+    // Check for safety ratings or blocked content
+    if (data.candidates?.[0]?.finishReason === 'SAFETY') {
+      return "I apologize, but I cannot respond to that request due to content safety filters.";
+    }
+    
+    const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    
+    // Clean up response if it contains role prefixes
+    if (responseText) {
+      return responseText.replace(/^(Model|Assistant):\s*/i, '').trim();
+    }
+    
+    return "I'm sorry, I couldn't process that request.";
   } catch (error) {
     console.error("Chatbot error:", error);
     
