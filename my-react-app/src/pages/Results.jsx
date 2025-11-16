@@ -247,7 +247,7 @@ export default function Results() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="container py-8 space-y-8">
+      <div className="container py-8 space-y-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center space-y-4">
           <Badge className="bg-accent text-accent-foreground">Assessment Complete</Badge>

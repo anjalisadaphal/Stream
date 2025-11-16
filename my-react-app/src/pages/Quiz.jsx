@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Clock, Flag, ChevronLeft, ChevronRight, Loader2, Sparkles } from "lucide-react";
+import { Clock, Flag, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { generateQuizQuestions, generateFallbackQuestions } from "@/services/aiService";
+import { generateFallbackQuestions } from "@/services/aiService";
 
 export default function Quiz() {
   const navigate = useNavigate();
@@ -33,51 +33,12 @@ export default function Quiz() {
   useEffect(() => {
     const loadQuestions = async () => {
       try {
-        // First, try to generate dynamic questions using AI
         toast({
-          title: "Generating your personalized quiz...",
-          description: "Creating unique questions just for you!",
+          title: "Loading quiz...",
+          description: "Preparing your assessment.",
         });
 
-        let generatedQuestions = [];
-        
-        try {
-          // Try to generate questions using AI
-          generatedQuestions = await generateQuizQuestions();
-          
-          if (generatedQuestions && generatedQuestions.length >= 30) {
-            // Save generated questions to database for future use
-            const questionsToSave = generatedQuestions.map((q) => ({
-              question_text: q.question_text,
-              option_1: q.option_1,
-              option_2: q.option_2,
-              option_3: q.option_3,
-              option_4: q.option_4,
-              correct_answer: q.correct_answer,
-              domain: q.domain,
-              difficulty: q.difficulty,
-            }));
-
-            // Save to database (optional - for caching)
-            await supabase.from("questions").upsert(questionsToSave, {
-              onConflict: "question_text",
-              ignoreDuplicates: true,
-            });
-
-            setQuestions(generatedQuestions);
-            toast({
-              title: "Quiz ready!",
-              description: "Your personalized assessment is ready.",
-            });
-            setLoading(false);
-            return;
-          }
-        } catch (aiError) {
-          console.warn("AI generation failed, trying fallback:", aiError);
-          // Fall through to database/fallback
-        }
-
-        // Fallback: Try to get questions from database
+        // Get questions from database
         // Verify session before querying
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
@@ -115,7 +76,7 @@ export default function Quiz() {
               variant: "default",
             });
           } else {
-            throw new Error("No questions available from any source");
+            throw new Error("No questions available. Please contact the administrator.");
           }
         }
       } catch (error) {
@@ -360,7 +321,7 @@ export default function Quiz() {
         </div>
       </div>
 
-      <div className="container py-8">
+      <div className="container py-8 max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-[1fr_300px] gap-6">
           <div className="space-y-6">
             <Card>

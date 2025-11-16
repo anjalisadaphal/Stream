@@ -1,6 +1,7 @@
 [build]
-  command = "cd my-react-app && npm install && npm run build"
-  publish = "my-react-app/dist"
+  base = "client"
+  command = "npm install && npm run build"
+  publish = "dist"
 
 # Environment variables should be set in Netlify dashboard:
 # Site settings > Environment variables

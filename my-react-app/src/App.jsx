@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // [c-m] Removed BrowserRouter from this import
 import { Routes, Route } from "react-router-dom";
+import { CursorFollower } from "@/components/CursorFollower";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Quiz from "./pages/Quiz";
@@ -27,6 +28,7 @@ const queryClient = new QueryClient({
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <CursorFollower />
       <Toaster />
       <Sonner />
       {/* [c-m] Removed <BrowserRouter> wrapper from here */}

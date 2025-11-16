@@ -187,8 +187,8 @@ export default function Home() {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-accent/0 to-chart-3/0 group-hover:from-primary/5 group-hover:via-accent/5 group-hover:to-chart-3/5 transition-all duration-500" />
 
-                <CardContent className="relative pt-8 pb-6 px-6 md:px-8">
-                  <div className={`w-14 h-14 md:w-16 md:h-16 rounded-xl ${domain.bgColor} flex items-center justify-center mb-5 md:mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                <CardContent className="relative pt-8 pb-6 px-6 md:px-8 text-center">
+                  <div className={`w-14 h-14 md:w-16 md:h-16 rounded-xl ${domain.bgColor} flex items-center justify-center mb-5 md:mb-6 group-hover:scale-110 transition-transform duration-300 mx-auto`}>
                     <Icon className={`h-7 w-7 md:h-8 md:w-8 ${domain.color}`} />
                   </div>
 
@@ -202,7 +202,7 @@ export default function Home() {
 
                   <div className="space-y-2">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Key Areas:</p>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 justify-center">
                       {domain.features.map((feature, i) => (
                         <span
                           key={i}

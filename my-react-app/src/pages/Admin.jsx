@@ -223,7 +223,7 @@ export default function Admin() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="container py-8 space-y-8">
+      <div className="container py-8 space-y-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
