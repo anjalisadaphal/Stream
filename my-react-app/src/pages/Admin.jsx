@@ -73,6 +73,24 @@ const fetchAdminData = async () => {
     throw questionsData.error;
   }
 
+  // Handle errors in count queries
+  if (usersCount.error) {
+    console.error("Error fetching user count:", usersCount.error);
+    if (usersCount.error.code === 'PGRST301' || usersCount.error.message?.includes('JWT')) {
+      throw new Error("Session expired. Please sign in again.");
+    }
+    // If RLS policy is missing, the count will be 0, but we should still show the error
+    console.warn("User count query failed - check RLS policies for profiles table");
+  }
+
+  if (questionsCount.error) {
+    console.error("Error fetching questions count:", questionsCount.error);
+  }
+
+  if (attemptsCount.error) {
+    console.error("Error fetching attempts count:", attemptsCount.error);
+  }
+
   const stats = {
     totalQuestions: questionsCount.count ?? 0,
     totalUsers: usersCount.count ?? 0,
