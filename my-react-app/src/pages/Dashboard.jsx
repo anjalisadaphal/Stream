@@ -10,7 +10,7 @@ import {
   Award,
   RefreshCw,
   Eye,
-  Loader2, // [c-m] Added Loader
+  Loader2,
 } from "lucide-react";
 import {
   LineChart,
@@ -22,77 +22,46 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
+  Legend
 } from "recharts";
-import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth"; // [c-m] Import useAuth
-import { supabase } from "@/integrations/supabase/client"; // [c-m] Import supabase
-import { useQuery } from "@tanstack/react-query"; // [c-m] Import useQuery
+import { useAuth } from "@/hooks/useAuth";
+import api from "@/lib/api";
 
-// Optimized function to fetch all dashboard data in parallel
-const fetchDashboardData = async (userId) => {
-  // Verify session is still valid before fetching
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    throw new Error("Session expired. Please sign in again.");
-  }
-
-  // Fetch both profile and attempts in parallel for better performance
-  const [profileResult, attemptsResult] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("full_name, email, created_at")
-      .eq("id", userId)
-      .single(),
-    supabase
-      .from("quiz_attempts")
-      .select("*")
-      .eq("user_id", userId)
-      .order("completed_at", { ascending: true }),
+const fetchDashboardData = async () => {
+  const [profileRes, attemptsRes] = await Promise.all([
+    api.get('/auth/me'),
+    api.get('/quiz/attempts')
   ]);
 
-  // Handle auth errors
-  if (profileResult.error) {
-    if (profileResult.error.code === 'PGRST301' || profileResult.error.message?.includes('JWT')) {
-      throw new Error("Session expired. Please sign in again.");
-    }
-    throw new Error(`Profile fetch error: ${profileResult.error.message}`);
-  }
-  
-  if (attemptsResult.error) {
-    if (attemptsResult.error.code === 'PGRST301' || attemptsResult.error.message?.includes('JWT')) {
-      throw new Error("Session expired. Please sign in again.");
-    }
-    throw new Error(`Attempts fetch error: ${attemptsResult.error.message}`);
-  }
-
-  return { profile: profileResult.data, attempts: attemptsResult.data || [] };
+  return {
+    profile: profileRes.data,
+    attempts: attemptsRes.data
+  };
 };
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth(); // [c-m] Get user from auth
+  const { user, loading: authLoading } = useAuth();
 
-  // [c-m] Fetch data using react-query
   const {
     data,
     isLoading: dataLoading,
     error,
   } = useQuery({
-    queryKey: ["dashboardData", user?.id], // Unique key for this query
-    queryFn: () => fetchDashboardData(user.id), // Function to run
-    enabled: !authLoading && !!user, // Only run if auth is done and user exists
+    queryKey: ["dashboardData", user?.id],
+    queryFn: fetchDashboardData,
+    enabled: !authLoading && !!user,
   });
 
-  // [c-m] Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/auth", { replace: true });
-    }
-  }, [user, authLoading, navigate]);
+  // Redirect if not authenticated
+  if (!authLoading && !user) {
+    navigate("/auth", { replace: true });
+    return null;
+  }
 
-  // [c-m] Show a loader while auth is loading
+  // Show a loader while auth is loading
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -101,12 +70,7 @@ export default function Dashboard() {
     );
   }
 
-  // [c-m] Don't render if not authenticated (redirect will happen)
-  if (!user) {
-    return null;
-  }
-
-  // [c-m] Show a loader while data is loading
+  // Show a loader while data is loading
   if (dataLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -115,7 +79,7 @@ export default function Dashboard() {
     );
   }
 
-  // [c-m] Handle error state
+  // Handle error state
   if (error) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -124,8 +88,8 @@ export default function Dashboard() {
     );
   }
 
-  // [c-m] Handle case where user has no attempts yet
-  if (!data || !data.profile || data.attempts.length === 0) {
+  // Handle case where user has no attempts yet
+  if (!data || !data.profile || !data.attempts || data.attempts.length === 0) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -140,7 +104,7 @@ export default function Dashboard() {
     );
   }
 
-  // [c-m] Data is loaded! Let's format it for the components.
+  // Data is loaded! Let's format it for the components.
   const { profile, attempts } = data;
 
   // Format for "Progress Over Time" chart
@@ -193,7 +157,6 @@ export default function Dashboard() {
                   <User className="h-8 w-8 text-primary" />
                 </div>
                 <div>
-                  {/* [c-m] Dynamic Data */}
                   <h3 className="font-semibold text-lg">{profile.full_name}</h3>
                   <p className="text-sm text-muted-foreground">Tech Student</p>
                 </div>
@@ -201,19 +164,16 @@ export default function Dashboard() {
               <div className="space-y-2 pt-4 border-t">
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  {/* [c-m] Dynamic Data */}
                   <span>{profile.email}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  {/* [c-m] Dynamic Data */}
                   <span>
                     Joined {new Date(profile.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Award className="h-4 w-4 text-muted-foreground" />
-                  {/* [c-m] Dynamic Data */}
                   <span>{attempts.length} Assessments Completed</span>
                 </div>
               </div>
@@ -229,7 +189,6 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
-                {/* [c-m] Dynamic Data */}
                 <LineChart data={progressData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis
@@ -268,7 +227,6 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              {/* [c-m] Dynamic Data */}
               <BarChart data={skillAffinityData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis
@@ -302,7 +260,6 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {/* [c-m] Dynamic Data */}
               {pastAttempts.map((attempt, index) => (
                 <div
                   key={attempt.id}
@@ -314,7 +271,6 @@ export default function Dashboard() {
                       <div className="text-xs text-muted-foreground">Score</div>
                     </div>
                     <div>
-                      {/* [c-m] Capitalize first letter */}
                       <div className="font-semibold capitalize">
                         {attempt.recommended_domain}
                       </div>
@@ -329,14 +285,12 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    {/* [c-m] Only show "Latest" badge for the first item */}
                     {index === 0 && (
                       <Badge className="bg-accent">Latest</Badge>
                     )}
                     <Button
                       variant="outline"
                       size="sm"
-                      // [c-m] Pass attemptId to results page
                       onClick={() => navigate("/results", { state: { attemptId: attempt.id } })}
                     >
                       <Eye className="h-4 w-4 mr-1" />

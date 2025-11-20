@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
 const initialNewQuestionState = {
@@ -50,55 +50,16 @@ const initialNewQuestionState = {
   difficulty: "medium",
 };
 
-// [c-m] This function will be called by useQuery
 const fetchAdminData = async () => {
-  // Verify session is still valid before fetching
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    throw new Error("Session expired. Please sign in again.");
-  }
-
-  const [questionsCount, usersCount, attemptsCount, questionsData] = await Promise.all([
-    supabase.from("questions").select("id", { count: "exact", head: true }),
-    supabase.from("profiles").select("id", { count: "exact", head: true }),
-    supabase.from("quiz_attempts").select("id", { count: "exact", head: true }),
-    supabase.from("questions").select("*").order("created_at", { ascending: false }),
+  const [statsRes, questionsRes] = await Promise.all([
+    api.get('/admin/stats'),
+    api.get('/quiz/questions')
   ]);
 
-  // Handle auth errors
-  if (questionsData.error) {
-    if (questionsData.error.code === 'PGRST301' || questionsData.error.message?.includes('JWT')) {
-      throw new Error("Session expired. Please sign in again.");
-    }
-    throw questionsData.error;
-  }
-
-  // Handle errors in count queries
-  if (usersCount.error) {
-    console.error("Error fetching user count:", usersCount.error);
-    if (usersCount.error.code === 'PGRST301' || usersCount.error.message?.includes('JWT')) {
-      throw new Error("Session expired. Please sign in again.");
-    }
-    // If RLS policy is missing, the count will be 0, but we should still show the error
-    console.warn("User count query failed - check RLS policies for profiles table");
-  }
-
-  if (questionsCount.error) {
-    console.error("Error fetching questions count:", questionsCount.error);
-  }
-
-  if (attemptsCount.error) {
-    console.error("Error fetching attempts count:", attemptsCount.error);
-  }
-
-  const stats = {
-    totalQuestions: questionsCount.count ?? 0,
-    totalUsers: usersCount.count ?? 0,
-    assessmentsTaken: attemptsCount.count ?? 0,
+  return {
+    stats: statsRes.data,
+    questions: questionsRes.data
   };
-  const questions = questionsData.data || [];
-
-  return { stats, questions };
 };
 
 export default function Admin() {
@@ -113,9 +74,9 @@ export default function Admin() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newQuestion, setNewQuestion] = useState(initialNewQuestionState);
 
-  // [c-m] 1. Security: Redirect if not admin
+  // Security: Redirect if not admin
   useEffect(() => {
-    if (authLoading) return; // Wait for auth to finish
+    if (authLoading) return;
     if (!user || !isAdmin) {
       toast({
         title: "Access Denied",
@@ -126,20 +87,19 @@ export default function Admin() {
     }
   }, [user, isAdmin, authLoading, navigate, toast]);
 
-  // [c-m] 2. Data Fetching: useQuery handles all data and loading
+  // Data Fetching
   const {
     data,
     isLoading: dataLoading,
     error: dataError,
-    refetch, // We'll use this to refresh data after changes
+    refetch,
   } = useQuery({
     queryKey: ["adminData"],
     queryFn: fetchAdminData,
-    enabled: !authLoading && !!isAdmin, // IMPORTANT: Only run this query if auth is loaded and user is an admin
+    enabled: !authLoading && !!isAdmin,
     retry: 1,
   });
 
-  // [c-m] Handlers are now simpler, just call refetch() on success
   const handleFormChange = (field, value) => {
     setNewQuestion((prev) => ({ ...prev, [field]: value }));
   };
@@ -156,19 +116,20 @@ export default function Admin() {
       ) {
         throw new Error("Please fill out all fields.");
       }
-      const { error } = await supabase.from("questions").insert(newQuestion);
-      if (error) throw error;
+
+      await api.post('/admin/questions', newQuestion);
+
       toast({
         title: "Success!",
         description: "New question has been added.",
       });
       setIsAddDialogOpen(false);
       setNewQuestion(initialNewQuestionState);
-      refetch(); // [c-m] Refresh the data
+      refetch();
     } catch (error) {
       toast({
         title: "Error saving question",
-        description: error.message,
+        description: error.response?.data?.detail || error.message,
         variant: "destructive",
       });
     } finally {
@@ -179,23 +140,22 @@ export default function Admin() {
   const handleDeleteQuestion = async (id) => {
     if (!window.confirm("Are you sure you want to delete this question?")) return;
     try {
-      const { error } = await supabase.from("questions").delete().eq("id", id);
-      if (error) throw error;
+      await api.delete(`/admin/questions/${id}`);
+
       toast({
         title: "Question Deleted",
         description: "The question has been successfully deleted.",
       });
-      refetch(); // [c-m] Refresh the data
+      refetch();
     } catch (error) {
       toast({
         title: "Error deleting question",
-        description: error.message,
+        description: error.response?.data?.detail || error.message,
         variant: "destructive",
       });
     }
   };
 
-  // [c-m] Get stats and questions from useQuery's data
   const stats = data?.stats || { totalQuestions: 0, totalUsers: 0, assessmentsTaken: 0 };
   const allQuestions = data?.questions || [];
 
@@ -208,21 +168,6 @@ export default function Admin() {
     });
   }, [allQuestions, searchQuery, domainFilter, levelFilter]);
 
-  // [c-m] 3. Simplified Loading: Show one loader if auth is checking OR data is fetching
-  // Handle session expiration errors
-  useEffect(() => {
-    if (dataError) {
-      if (dataError.message?.includes("Session expired")) {
-        toast({
-          title: "Session expired",
-          description: "Please sign in again.",
-          variant: "destructive",
-        });
-        navigate("/auth");
-      }
-    }
-  }, [dataError, navigate, toast]);
-
   if (authLoading || (isAdmin && dataLoading)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -231,12 +176,10 @@ export default function Admin() {
     );
   }
 
-  // [c-m] 4. If user is not admin, they are being redirected, so we render nothing.
   if (!isAdmin) {
     return null;
   }
 
-  // [c-m] 5. If we get here, user is Admin and data is loaded. Render the page.
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -504,8 +447,8 @@ export default function Admin() {
                                 question.difficulty === "easy"
                                   ? "default"
                                   : question.difficulty === "medium"
-                                  ? "secondary"
-                                  : "destructive"
+                                    ? "secondary"
+                                    : "destructive"
                               }
                             >
                               {question.difficulty}

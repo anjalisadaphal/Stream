@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // [c-m] Removed BrowserRouter from this import
 import { Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
 import { CursorFollower } from "@/components/CursorFollower";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
@@ -32,17 +33,19 @@ const App = () => (
       <Toaster />
       <Sonner />
       {/* [c-m] Removed <BrowserRouter> wrapper from here */}
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/quiz" element={<Quiz />} />
-        <Route path="/loading" element={<Loading />} />
-        <Route path="/results" element={<Results />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/admin" element={<Admin />} />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/quiz" element={<Quiz />} />
+          <Route path="/loading" element={<Loading />} />
+          <Route path="/results" element={<Results />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin" element={<Admin />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AuthProvider>
       {/* [c-m] Removed closing </BrowserRouter> tag */}
     </TooltipProvider>
   </QueryClientProvider>

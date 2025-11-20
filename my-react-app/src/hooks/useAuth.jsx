@@ -1,133 +1,80 @@
-import { useState, useEffect, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect, createContext, useContext } from "react";
+import api from "@/lib/api";
 
-export const useAuth = () => {
+const AuthContext = createContext(null);
+
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const mountedRef = useRef(true);
-
-  const checkAdminStatus = async (userId) => {
-    if (!userId || !mountedRef.current) {
-      setIsAdmin(false);
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.rpc("has_role", {
-        _user_id: userId,
-        _role: "admin",
-      });
-
-      if (!mountedRef.current) return;
-
-      if (!error && data) {
-        setIsAdmin(data);
-      } else {
-        setIsAdmin(false);
-      }
-    } catch (error) {
-      console.error("Error checking admin status:", error);
-      if (mountedRef.current) {
-        setIsAdmin(false);
-      }
-    }
-  };
 
   useEffect(() => {
-    let mounted = true;
+    const checkAuth = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
-    // Get initial session immediately - this is critical for page refreshes
-    const initializeAuth = async () => {
       try {
-        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
-        
-        if (!mounted) return;
-
-        if (error) {
-          console.error("Error getting initial session:", error);
-          setLoading(false);
-          return;
-        }
-
-        console.log("Initial session loaded:", initialSession?.user?.email || "No user");
-        
-        setSession(initialSession);
-        setUser(initialSession?.user ?? null);
-
-        if (initialSession?.user) {
-          await checkAdminStatus(initialSession.user.id);
-        } else {
-          setIsAdmin(false);
-        }
-
-        setLoading(false);
+        const response = await api.get("/auth/me");
+        setUser(response.data);
+        // Check if user is admin based on roles from backend
+        setIsAdmin(response.data.is_admin || false);
       } catch (error) {
-        console.error("Error initializing auth:", error);
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    // Load initial session first
-    initializeAuth();
-
-    // Then set up listener for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        if (!mounted) return;
-
-        console.log("Auth state change:", event, newSession?.user?.email || "No user");
-        
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-
-        if (newSession?.user) {
-          await checkAdminStatus(newSession.user.id);
-        } else {
-          setIsAdmin(false);
-        }
-
-        // Set loading to false after processing auth state change
+        console.error("Auth check failed:", error);
+        localStorage.removeItem("token");
+      } finally {
         setLoading(false);
       }
-    );
-
-    return () => {
-      mounted = false;
-      mountedRef.current = false;
-      subscription.unsubscribe();
     };
+
+    checkAuth();
   }, []);
 
-  const signOut = async () => {
-    try {
-      // Clear state first to prevent race conditions
-      setUser(null);
-      setSession(null);
-      setIsAdmin(false);
-      
-      // Then sign out from Supabase
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      // Clear any cached data
-      if (typeof window !== 'undefined') {
-        // Clear localStorage items related to auth
-        const keys = Object.keys(localStorage);
-        keys.forEach(key => {
-          if (key.startsWith('sb-') || key.includes('supabase')) {
-            localStorage.removeItem(key);
-          }
-        });
-      }
-    } catch (error) {
-      console.error("Error signing out:", error);
-      throw error;
-    }
+  const login = async (email, password) => {
+    const formData = new FormData();
+    formData.append("username", email);
+    formData.append("password", password);
+
+    const response = await api.post("/auth/login", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
+
+    const { access_token } = response.data;
+    localStorage.setItem("token", access_token);
+
+    // Fetch user details
+    const userResponse = await api.get("/auth/me");
+    setUser(userResponse.data);
+    // Set admin status
+    setIsAdmin(userResponse.data.is_admin || false);
+    return userResponse.data;
   };
 
-  return { user, session, loading, isAdmin, signOut };
+  const register = async (email, password, fullName) => {
+    await api.post("/auth/register", { email, password, full_name: fullName });
+    // Auto login after register for better UX
+    return login(email, password);
+  };
+
+  const signOut = () => {
+    localStorage.removeItem("token");
+    setUser(null);
+    setIsAdmin(false);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, loading, isAdmin, login, register, signOut }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };

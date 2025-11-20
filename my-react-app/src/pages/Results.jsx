@@ -32,7 +32,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -132,6 +132,8 @@ export default function Results() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [attempt, setAttempt] = useState(null);
+  const [aiGuidance, setAiGuidance] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     const fetchAttempt = async () => {
@@ -142,7 +144,7 @@ export default function Results() {
 
       try {
         const attemptId = location.state?.attemptId;
-        
+
         if (!attemptId) {
           toast({
             title: "No results found",
@@ -153,48 +155,29 @@ export default function Results() {
           return;
         }
 
-        // Verify session is still valid
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          toast({
-            title: "Session expired",
-            description: "Please sign in again to view your results.",
-            variant: "destructive",
-          });
-          navigate("/auth");
-          return;
-        }
+        // Fetch the specific attempt
+        const response = await api.get("/quiz/attempts");
+        const attempts = response.data;
+        const data = attempts.find(a => a.id === attemptId);
 
-        const { data, error } = await supabase
-          .from("quiz_attempts")
-          .select("*")
-          .eq("id", attemptId)
-          .single();
-
-        if (error) {
-          if (error.code === 'PGRST301' || error.message?.includes('JWT')) {
-            toast({
-              title: "Session expired",
-              description: "Please sign in again.",
-              variant: "destructive",
-            });
-            navigate("/auth");
-            return;
-          }
-          throw error;
-        }
-
-        if (data.user_id !== user?.id) {
-          toast({
-            title: "Access Denied",
-            description: "You don't have permission to view these results.",
-            variant: "destructive",
-          });
-          navigate("/dashboard");
-          return;
+        if (!data) {
+          throw new Error("Attempt not found.");
         }
 
         setAttempt(data);
+
+        // Fetch AI guidance
+        setAiLoading(true);
+        try {
+          const aiResponse = await api.get(`/quiz/attempts/${attemptId}/ai-guidance`);
+          setAiGuidance(aiResponse.data);
+        } catch (aiError) {
+          console.error("Failed to fetch AI guidance:", aiError);
+          // Continue without AI guidance - will use static data as fallback
+        } finally {
+          setAiLoading(false);
+        }
+
       } catch (error) {
         toast({
           title: "Error loading results",
@@ -225,8 +208,9 @@ export default function Results() {
   }
 
   const domain = attempt.recommended_domain;
-  const domainData = domainInfo[domain] || domainInfo.programmer;
-  const DomainIcon = domainData.icon;
+  // Use AI guidance if available, otherwise fall back to static data
+  const domainData = aiGuidance || domainInfo[domain] || domainInfo.programmer;
+  const DomainIcon = domainInfo[domain]?.icon || domainInfo.programmer.icon;
 
   // Calculate radar chart data from scores
   const maxScore = Math.max(
@@ -250,7 +234,10 @@ export default function Results() {
       <div className="container py-8 space-y-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center space-y-4">
-          <Badge className="bg-accent text-accent-foreground">Assessment Complete</Badge>
+          <div className="flex items-center justify-center gap-2">
+            <Badge className="bg-accent text-accent-foreground">Assessment Complete</Badge>
+            {aiLoading && <Badge variant="outline">Generating AI Insights...</Badge>}
+          </div>
           <h1 className="text-4xl md:text-5xl font-bold">Your Career Path Results</h1>
           <p className="text-muted-foreground text-lg">
             Based on your assessment, here's your personalized career guidance

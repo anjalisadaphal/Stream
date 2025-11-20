@@ -6,9 +6,8 @@ import { Progress } from "@/components/ui/progress";
 import { Clock, Flag, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { generateFallbackQuestions } from "@/services/aiService";
 
 export default function Quiz() {
   const navigate = useNavigate();
@@ -24,66 +23,17 @@ export default function Quiz() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submitRef = useRef(false);
 
+  // Fetch questions
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/auth");
-    }
-  }, [user, authLoading, navigate]);
-
-  useEffect(() => {
-    const loadQuestions = async () => {
+    const fetchQuestions = async () => {
       try {
-        toast({
-          title: "Loading quiz...",
-          description: "Preparing your assessment.",
-        });
-
-        // Get questions from database
-        // Verify session before querying
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          throw new Error("Session expired. Please sign in again.");
-        }
-
-        const { data: dbQuestions, error: dbError } = await supabase
-          .from("questions")
-          .select("*")
-          .limit(30);
-
-        if (dbError) {
-          if (dbError.code === 'PGRST301' || dbError.message?.includes('JWT')) {
-            throw new Error("Session expired. Please sign in again.");
-          }
-          throw dbError;
-        }
-
-        if (dbQuestions && dbQuestions.length >= 30) {
-          // Shuffle database questions for variety
-          const shuffled = [...dbQuestions].sort(() => Math.random() - 0.5);
-          setQuestions(shuffled.slice(0, 30));
-          toast({
-            title: "Quiz loaded!",
-            description: "Starting your assessment.",
-          });
-        } else {
-          // Last resort: Use fallback questions
-          const fallbackQuestions = generateFallbackQuestions();
-          if (fallbackQuestions.length > 0) {
-            setQuestions(fallbackQuestions);
-            toast({
-              title: "Using sample questions",
-              description: "Limited questions available. Contact admin to add more.",
-              variant: "default",
-            });
-          } else {
-            throw new Error("No questions available. Please contact the administrator.");
-          }
-        }
+        const res = await api.get('/quiz/questions');
+        setQuestions(res.data);
       } catch (error) {
-        console.error("Error loading questions:", error);
+        console.error("Failed to fetch questions", error);
         toast({
-          title: "Error loading questions",
-          description: error.message || "Please try again or contact support.",
+          title: "Error",
+          description: "Failed to load questions. Please try again.",
           variant: "destructive",
         });
       } finally {
@@ -91,149 +41,20 @@ export default function Quiz() {
       }
     };
 
-    if (user) {
-      loadQuestions();
+    if (user && !authLoading) {
+      fetchQuestions();
     }
-  }, [user, toast]);
+  }, [user, authLoading, toast]);
 
-  const handleSubmit = useCallback(async () => {
-    if (isSubmitting || !user || submitRef.current) return;
-    submitRef.current = true;
-    setIsSubmitting(true);
-
-    try {
-      const scores = { programmer: 0, analytics: 0, tester: 0 };
-      const responses = [];
-
-      // First, ensure all questions have database IDs
-      // If questions were generated dynamically, save them to DB first
-      const questionsWithIds = [];
-      for (let i = 0; i < questions.length; i++) {
-        const question = questions[i];
-        if (!question.id) {
-          // Question doesn't have an ID, check if it exists in DB first
-          const { data: existingQuestion } = await supabase
-            .from("questions")
-            .select("id")
-            .eq("question_text", question.question_text)
-            .single();
-
-          if (existingQuestion?.id) {
-            // Question already exists, use its ID
-            questionsWithIds.push({ ...question, id: existingQuestion.id });
-          } else {
-            // Question doesn't exist, insert it
-            const { data: savedQuestion, error: saveError } = await supabase
-              .from("questions")
-              .insert({
-                question_text: question.question_text,
-                option_1: question.option_1,
-                option_2: question.option_2,
-                option_3: question.option_3,
-                option_4: question.option_4,
-                correct_answer: question.correct_answer,
-                domain: question.domain,
-                difficulty: question.difficulty,
-              })
-              .select()
-              .single();
-
-            if (saveError) {
-              console.error("Error saving question to database:", saveError);
-              // Skip this question if we can't save it
-              continue;
-            }
-            questionsWithIds.push(savedQuestion);
-          }
-        } else {
-          questionsWithIds.push(question);
-        }
-      }
-
-      // Now calculate scores and responses with valid question IDs
-      questionsWithIds.forEach((question, index) => {
-        const originalIndex = questions.findIndex(q => 
-          q.question_text === question.question_text
-        );
-        const selectedAnswer = answers[originalIndex];
-        if (selectedAnswer !== undefined && question.id) {
-          const isCorrect = selectedAnswer + 1 === question.correct_answer;
-          if (isCorrect) {
-            scores[question.domain]++;
-          }
-          responses.push({
-            question_id: question.id,
-            selected_answer: selectedAnswer + 1,
-            is_correct: isCorrect,
-          });
-        }
-      });
-
-      const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
-      const recommendedDomain =
-        scores.programmer >= scores.analytics && scores.programmer >= scores.tester
-          ? "programmer"
-          : scores.analytics >= scores.tester
-          ? "analytics"
-          : "tester";
-
-      // Verify session before submitting
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error("Session expired. Please sign in again and retake the quiz.");
-      }
-
-      const { data: attemptData, error: attemptError } = await supabase
-        .from("quiz_attempts")
-        .insert({
-          user_id: user.id,
-          recommended_domain: recommendedDomain,
-          programmer_score: scores.programmer,
-          analytics_score: scores.analytics,
-          tester_score: scores.tester,
-          total_score: totalScore,
-        })
-        .select()
-        .single();
-
-      if (attemptError) {
-        if (attemptError.code === 'PGRST301' || attemptError.message?.includes('JWT')) {
-          throw new Error("Session expired. Please sign in again.");
-        }
-        throw attemptError;
-      }
-
-      const responsesWithAttemptId = responses.map((r) => ({
-        ...r,
-        attempt_id: attemptData.id,
-      }));
-
-      const { error: responsesError } = await supabase
-        .from("quiz_responses")
-        .insert(responsesWithAttemptId);
-
-      if (responsesError) throw responsesError;
-
-      navigate("/results", { state: { attemptId: attemptData.id } });
-    } catch (error) {
-      toast({
-        title: "Error submitting quiz",
-        description: error.message,
-        variant: "destructive",
-      });
-      submitRef.current = false;
-      setIsSubmitting(false);
-    }
-  }, [user, questions, answers, navigate, toast, isSubmitting]);
-
+  // Timer logic
   useEffect(() => {
-    if (loading) return;
+    if (loading || !questions.length) return;
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          // Use a ref or call handleSubmit directly
+          submitRef.current = true; // Mark as auto-submit
           return 0;
         }
         return prev - 1;
@@ -241,11 +62,39 @@ export default function Quiz() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [loading]);
+  }, [loading, questions.length]);
 
-  // Separate effect to handle auto-submit when time runs out
+  // Handle Submit
+  const handleSubmit = useCallback(async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    try {
+      const formattedAnswers = Object.entries(answers).map(([index, optionIndex]) => ({
+        question_id: questions[index].id,
+        selected_answer: optionIndex + 1 // Backend expects 1-based index
+      }));
+
+      const response = await api.post('/quiz/attempts', {
+        responses: formattedAnswers
+      });
+
+      navigate('/results', { state: { attemptId: response.data.id } });
+
+    } catch (error) {
+      console.error("Submit failed", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit quiz. Please try again.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+    }
+  }, [answers, questions, isSubmitting, navigate, toast]);
+
+  // Auto-submit when time runs out
   useEffect(() => {
-    if (timeLeft === 0 && !isSubmitting && questions.length > 0 && user && !submitRef.current) {
+    if (timeLeft === 0 && !isSubmitting && questions.length > 0 && user && submitRef.current) {
       handleSubmit();
     }
   }, [timeLeft, isSubmitting, questions.length, user, handleSubmit]);
@@ -335,19 +184,17 @@ export default function Quiz() {
                     <button
                       key={index}
                       onClick={() => handleAnswerSelect(index)}
-                      className={`w-full text-left p-4 rounded-lg border-2 transition-all hover:border-primary/50 ${
-                        answers[currentQuestion] === index
-                          ? "border-primary bg-primary/5"
-                          : "border-border"
-                      }`}
+                      className={`w-full text-left p-4 rounded-lg border-2 transition-all hover:border-primary/50 ${answers[currentQuestion] === index
+                        ? "border-primary bg-primary/5"
+                        : "border-border"
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                            answers[currentQuestion] === index
-                              ? "border-primary bg-primary"
-                              : "border-border"
-                          }`}
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${answers[currentQuestion] === index
+                            ? "border-primary bg-primary"
+                            : "border-border"
+                            }`}
                         >
                           {answers[currentQuestion] === index && (
                             <div className="w-2 h-2 rounded-full bg-primary-foreground" />
@@ -423,15 +270,14 @@ export default function Quiz() {
                       <button
                         key={index}
                         onClick={() => setCurrentQuestion(index)}
-                        className={`aspect-square rounded-lg border-2 flex items-center justify-center text-sm font-medium transition-all hover:border-primary/50 ${
-                          currentQuestion === index
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : status === "answered"
+                        className={`aspect-square rounded-lg border-2 flex items-center justify-center text-sm font-medium transition-all hover:border-primary/50 ${currentQuestion === index
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : status === "answered"
                             ? "border-accent/50 bg-accent text-accent-foreground"
                             : status === "marked"
-                            ? "border-purple-500/50 bg-purple-500/10 text-purple-700"
-                            : "border-border bg-background"
-                        }`}
+                              ? "border-purple-500/50 bg-purple-500/10 text-purple-700"
+                              : "border-border bg-background"
+                          }`}
                       >
                         {index + 1}
                       </button>

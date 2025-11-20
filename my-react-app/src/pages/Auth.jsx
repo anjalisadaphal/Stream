@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,12 +18,10 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, login, register } = useAuth();
 
   useEffect(() => {
-    // This will now correctly redirect if the hook loads and finds a user.
     if (!authLoading && user) {
-      console.log("User is logged in, redirecting to home. User email:", user.email);
       navigate("/", { replace: true });
     }
   }, [user, authLoading, navigate]);
@@ -34,39 +31,18 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            full_name: fullName,
-          },
-        },
-      });
+      await register(email, password, fullName);
 
-      if (error) throw error;
-
-      const needsEmailConfirmation = !data.session;
-      
       toast({
         title: "Success!",
-        description: needsEmailConfirmation 
-          ? "Account created! Please check your email to confirm your account before signing in."
-          : "Account created successfully. You can now sign in.",
+        description: "Account created and signed in successfully.",
       });
-      
-      if (data.session) {
-        setEmail("");
-        setPassword("");
-        setFullName("");
-      } else {
-        setFullName("");
-      }
+
+      // Navigation handled by useEffect
     } catch (error) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.response?.data?.detail || error.message,
         variant: "destructive",
       });
     } finally {
@@ -79,66 +55,22 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      console.log("Attempting sign in with email:", email);
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        console.error("Sign in error:", error);
-        throw error;
-      }
-
-      if (!data?.session) {
-        console.error("No session in response");
-        throw new Error("Sign in successful but no session was created. Please try again.");
-      }
-
-      console.log("Sign in successful, user:", data.session.user?.email);
-      console.log("Session token exists:", !!data.session.access_token);
-
-      // Verify session is persisted
-      const { data: { session: verifiedSession } } = await supabase.auth.getSession();
-      if (!verifiedSession) {
-        throw new Error("Session was not properly saved. Please try again.");
-      }
+      await login(email, password);
 
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
       });
-      
-      setEmail("");
-      setPassword("");
-      
-      // Wait a moment for auth state to update, then navigate
-      // The useEffect will handle navigation when user state updates
-      setTimeout(() => {
-        if (verifiedSession?.user) {
-          navigate("/", { replace: true });
-        }
-      }, 100);
-      
+
+      // Navigation handled by useEffect
     } catch (error) {
       console.error("Sign in error:", error);
       let errorMessage = "Invalid email or password. Please check your credentials and try again.";
-      
-      if (error.message) {
-        if (error.message.includes("Invalid login credentials") || error.message.includes("Invalid")) {
-          errorMessage = "Invalid email or password. Please check your credentials and try again.";
-        } else if (error.message.includes("Email not confirmed") || error.message.includes("not confirmed")) {
-          errorMessage = "Please verify your email address before signing in. Check your inbox for a confirmation email.";
-        } else if (error.message.includes("User not found")) {
-          errorMessage = "No account found with this email. Please sign up first.";
-        } else if (error.message.includes("Too many requests")) {
-          errorMessage = "Too many sign-in attempts. Please wait a moment and try again.";
-        } else {
-          errorMessage = error.message;
-        }
+
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
       }
-      
+
       toast({
         title: "Sign In Failed",
         description: errorMessage,
@@ -149,7 +81,6 @@ const Auth = () => {
     }
   };
 
-  // Show a spinner while the auth hook is loading.
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
@@ -162,7 +93,6 @@ const Auth = () => {
     );
   }
 
-  // If auth is done and NO user, show the form.
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <Card className="w-full max-w-md shadow-xl border-2">
