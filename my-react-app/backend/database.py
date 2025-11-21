@@ -5,10 +5,16 @@ from dotenv import load_dotenv
 
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
-# Use an environment variable for the DB URL, default to a local postgres instance if not set
-# NOTE: For the migration, you might want to use your Supabase connection string here.
+# Use an environment variable for the DB URL
 # Format: postgresql+asyncpg://user:password@host:port/dbname
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost/stream_career_db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    if os.getenv("RENDER"):
+        raise ValueError("DATABASE_URL is not set! Please add it to the Environment Variables in Render.")
+    # Default to local for development
+    DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost/stream_career_db"
+
 if DATABASE_URL and DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
