@@ -35,11 +35,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Stream Backend", lifespan=lifespan)
 
-# Configure CORS - Allow all origins for development
+# Configure CORS - Allow specific origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins
-    allow_credentials=False,  # Must be False when allow_origins is ["*"]
+    allow_origins=[
+        "https://stream-the-three-weirci.vercel.app",  # Production frontend
+        "http://localhost:5173",  # Local development
+        "http://localhost:3000",  # Alternative local port
+    ],
+    allow_credentials=True,  # Enable credentials support
     allow_methods=["*"],
     allow_headers=["*"],
 )
