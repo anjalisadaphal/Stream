@@ -1,7 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="Stream Backend")
+from contextlib import asynccontextmanager
+from .database import engine, Base
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Create tables on startup
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+
+app = FastAPI(title="Stream Backend", lifespan=lifespan)
 
 # Configure CORS - Allow all origins for development
 app.add_middleware(
