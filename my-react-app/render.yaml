@@ -3,6 +3,7 @@ services:
     name: stream-backend
     env: python
     region: oregon
+    rootDir: ./
     buildCommand: pip install -r backend/requirements.txt
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     envVars:
@@ -11,8 +12,8 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: SECRET_KEY
-        generateValue: true
+        value: your-secret-key-change-this-in-production-to-something-secure
       - key: ALGORITHM
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
-        value: 30
+        value: "30"
