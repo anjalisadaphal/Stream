@@ -48,11 +48,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from .routers import auth, quiz, admin
+from .routers import auth, quiz, admin, content, progress
 
 app.include_router(auth.router)
 app.include_router(quiz.router)
 app.include_router(admin.router)
+app.include_router(content.router)
+app.include_router(progress.router)
 
 @app.get("/")
 async def root():

@@ -13,6 +13,7 @@ import Loading from "./pages/Loading";
 import Results from "./pages/Results";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
+import PublicResult from "./pages/PublicResult";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -32,7 +33,6 @@ const App = () => (
       <CursorFollower />
       <Toaster />
       <Sonner />
-      {/* [c-m] Removed <BrowserRouter> wrapper from here */}
       <AuthProvider>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -40,13 +40,12 @@ const App = () => (
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/loading" element={<Loading />} />
           <Route path="/results" element={<Results />} />
+          <Route path="/results/:shareId" element={<PublicResult />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin" element={<Admin />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AuthProvider>
-      {/* [c-m] Removed closing </BrowserRouter> tag */}
     </TooltipProvider>
   </QueryClientProvider>
 );

@@ -36,7 +36,7 @@ import api from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
-// Domain-specific data
+// Domain-specific data (Static parts)
 const domainInfo = {
   programmer: {
     name: "Programmer",
@@ -52,13 +52,6 @@ const domainInfo = {
       { skill: "Data Structures & Algorithms", priority: "High" },
       { skill: "Database Management (SQL)", priority: "High" },
       { skill: "System Design", priority: "Medium" },
-    ],
-    learningRoadmap: [
-      { step: 1, title: "Master the Fundamentals", description: "Learn Python/JavaScript in depth", duration: "2-3 months" },
-      { step: 2, title: "Learn a Framework", description: "React/Django/Node.js", duration: "2 months" },
-      { step: 3, title: "Understand Databases", description: "SQL, MongoDB basics", duration: "1 month" },
-      { step: 4, title: "Build Projects", description: "Create 3-5 portfolio projects", duration: "3 months" },
-      { step: 5, title: "Prepare for Interviews", description: "DSA practice & mock interviews", duration: "2 months" },
     ],
     futureScope: "The programming field continues to show exceptional growth with increasing demand across all sectors. As digital transformation accelerates, skilled programmers are needed for AI/ML, cloud computing, cybersecurity, and web3 technologies. Career progression typically leads to senior developer, tech lead, or solution architect roles with significant earning potential and job security.",
   },
@@ -77,13 +70,6 @@ const domainInfo = {
       { skill: "Data Visualization Tools", priority: "High" },
       { skill: "Statistical Analysis", priority: "Medium" },
     ],
-    learningRoadmap: [
-      { step: 1, title: "Learn SQL Fundamentals", description: "Master database queries and joins", duration: "1-2 months" },
-      { step: 2, title: "Data Visualization", description: "Excel, Tableau, Power BI", duration: "2 months" },
-      { step: 3, title: "Python for Analytics", description: "Pandas, NumPy, Matplotlib", duration: "2 months" },
-      { step: 4, title: "Build Analytics Projects", description: "Create portfolio with real datasets", duration: "3 months" },
-      { step: 5, title: "Advanced Analytics", description: "Machine Learning basics", duration: "2 months" },
-    ],
     futureScope: "The analytics field is experiencing explosive growth as organizations increasingly rely on data-driven decision making. With the rise of big data, AI, and business intelligence tools, analytics professionals are in high demand across all industries. Career paths lead to senior analyst, data scientist, or analytics manager roles.",
   },
   tester: {
@@ -101,13 +87,6 @@ const domainInfo = {
       { skill: "API Testing", priority: "High" },
       { skill: "Performance Testing", priority: "Medium" },
     ],
-    learningRoadmap: [
-      { step: 1, title: "Testing Fundamentals", description: "Manual testing concepts and methodologies", duration: "1-2 months" },
-      { step: 2, title: "Test Automation", description: "Selenium, Cypress, or Playwright", duration: "2-3 months" },
-      { step: 3, title: "API Testing", description: "Postman, REST Assured", duration: "1-2 months" },
-      { step: 4, title: "Build Test Projects", description: "Create comprehensive test suites", duration: "2-3 months" },
-      { step: 5, title: "Advanced Testing", description: "Performance, security, and CI/CD integration", duration: "2 months" },
-    ],
     futureScope: "Quality assurance and testing remain critical as software complexity increases. With the shift towards DevOps and continuous delivery, test automation skills are highly valued. Career progression leads to senior QA engineer, test architect, or QA manager positions with strong job security and growth potential.",
   },
 };
@@ -116,13 +95,6 @@ const salaryData = [
   { level: "Entry", min: 6, max: 10 },
   { level: "Mid", min: 12, max: 20 },
   { level: "Senior", min: 25, max: 40 },
-];
-
-const resources = [
-  { title: "Full Stack Web Development", source: "Udemy", link: "#", type: "Course" },
-  { title: "Data Structures in Python", source: "Coursera", link: "#", type: "Course" },
-  { title: "System Design Primer", source: "GitHub", link: "#", type: "Guide" },
-  { title: "LeetCode Practice", source: "LeetCode", link: "#", type: "Practice" },
 ];
 
 export default function Results() {
@@ -134,6 +106,9 @@ export default function Results() {
   const [attempt, setAttempt] = useState(null);
   const [aiGuidance, setAiGuidance] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
+
+  const [roadmaps, setRoadmaps] = useState([]);
+  const [resources, setResources] = useState([]);
 
   useEffect(() => {
     const fetchAttempt = async () => {
@@ -165,6 +140,19 @@ export default function Results() {
         }
 
         setAttempt(data);
+        const domain = data.recommended_domain;
+
+        // Fetch Roadmaps and Resources
+        try {
+          const [roadmapsRes, resourcesRes] = await Promise.all([
+            api.get(`/content/roadmaps?domain=${domain}`),
+            api.get(`/content/resources?domain=${domain}`)
+          ]);
+          setRoadmaps(roadmapsRes.data);
+          setResources(resourcesRes.data);
+        } catch (contentError) {
+          console.error("Failed to fetch content:", contentError);
+        }
 
         // Fetch AI guidance
         setAiLoading(true);
@@ -173,7 +161,7 @@ export default function Results() {
           setAiGuidance(aiResponse.data);
         } catch (aiError) {
           console.error("Failed to fetch AI guidance:", aiError);
-          // Continue without AI guidance - will use static data as fallback
+          // Continue without AI guidance
         } finally {
           setAiLoading(false);
         }
@@ -335,7 +323,7 @@ export default function Results() {
               </CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-4">
-                  {domainData.jobProfiles.map((job) => (
+                  {domainData.jobProfiles?.map((job) => (
                     <div key={job.title} className="p-4 border rounded-lg hover:border-primary/50 transition-colors">
                       <h4 className="font-semibold mb-2">{job.title}</h4>
                       <div className="flex gap-2">
@@ -399,7 +387,7 @@ export default function Results() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {domainData.skillsToImprove.map((item) => (
+                  {domainData.skillsToImprove?.map((item) => (
                     <div key={item.skill} className="flex items-center justify-between p-3 border rounded-lg">
                       <span className="font-medium">{item.skill}</span>
                       <Badge variant={item.priority === "High" ? "default" : "secondary"}>
@@ -420,25 +408,31 @@ export default function Results() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {domainData.learningRoadmap.map((step, index) => (
-                    <div key={step.step} className="flex gap-4">
-                      <div className="flex flex-col items-center">
-                        <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
-                          {step.step}
+                {roadmaps.length > 0 ? (
+                  <div className="space-y-4">
+                    {roadmaps.map((step, index) => (
+                      <div key={step.id || index} className="flex gap-4">
+                        <div className="flex flex-col items-center">
+                          <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
+                            {step.step_number}
+                          </div>
+                          {index < roadmaps.length - 1 && (
+                            <div className="w-0.5 h-full bg-border my-2" />
+                          )}
                         </div>
-                        {index < domainData.learningRoadmap.length - 1 && (
-                          <div className="w-0.5 h-full bg-border my-2" />
-                        )}
+                        <div className="flex-1 pb-8">
+                          <h4 className="font-semibold text-lg mb-1">{step.title}</h4>
+                          <p className="text-muted-foreground mb-2">{step.description}</p>
+                          {/* Duration is not in the new model, removing it or making it optional if added later */}
+                        </div>
                       </div>
-                      <div className="flex-1 pb-8">
-                        <h4 className="font-semibold text-lg mb-1">{step.title}</h4>
-                        <p className="text-muted-foreground mb-2">{step.description}</p>
-                        <Badge variant="outline">{step.duration}</Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">
+                    No roadmap available for this domain yet.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -453,24 +447,30 @@ export default function Results() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {resources.map((resource) => (
-                    <div key={resource.title} className="p-4 border rounded-lg hover:border-primary/50 transition-all">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
-                          <h4 className="font-semibold mb-1">{resource.title}</h4>
-                          <p className="text-sm text-muted-foreground">{resource.source}</p>
+                {resources.length > 0 ? (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {resources.map((resource, index) => (
+                      <div key={resource.id || index} className="p-4 border rounded-lg hover:border-primary/50 transition-all">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <h4 className="font-semibold mb-1">{resource.title}</h4>
+                            <p className="text-sm text-muted-foreground">{resource.domain}</p>
+                          </div>
+                          <Badge variant="secondary">{resource.type}</Badge>
                         </div>
-                        <Badge variant="secondary">{resource.type}</Badge>
+                        <Button variant="link" className="p-0 h-auto text-primary" asChild>
+                          <a href={resource.link} target="_blank" rel="noopener noreferrer">
+                            Start Learning <ExternalLink className="ml-1 h-3 w-3" />
+                          </a>
+                        </Button>
                       </div>
-                      <Button variant="link" className="p-0 h-auto text-primary" asChild>
-                        <a href={resource.link} target="_blank" rel="noopener noreferrer">
-                          Start Learning <ExternalLink className="ml-1 h-3 w-3" />
-                        </a>
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">
+                    No resources available for this domain yet.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -486,6 +486,17 @@ export default function Results() {
           </Button>
           <Button size="lg" variant="outline" onClick={() => window.print()}>
             Print Results
+          </Button>
+          <Button size="lg" variant="secondary" onClick={() => {
+            const url = `${window.location.origin}/results/${attempt.share_id}`;
+            navigator.clipboard.writeText(url);
+            toast({
+              title: "Link Copied!",
+              description: "Share this link with your friends.",
+            });
+          }}>
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Share Results
           </Button>
         </div>
       </div>

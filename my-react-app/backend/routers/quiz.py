@@ -144,6 +144,23 @@ async def get_ai_guidance(
         return guidance
         
     except ValueError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # Log the error but return None/Empty to frontend so it can fallback gracefully
+        print(f"AI Guidance Error: {e}")
+        return None
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate AI guidance: {str(e)}")
+        print(f"AI Guidance Unexpected Error: {e}")
+        return None
+
+@router.get("/public/attempts/{share_id}", response_model=schemas.QuizAttempt)
+async def get_public_attempt(
+    share_id: UUID,
+    db: AsyncSession = Depends(deps.get_db)
+):
+    result = await db.execute(
+        select(models.QuizAttempt)
+        .where(models.QuizAttempt.share_id == share_id)
+    )
+    attempt = result.scalars().first()
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+    return attempt

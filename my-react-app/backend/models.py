@@ -32,6 +32,7 @@ class User(Base):
     profile = relationship("Profile", back_populates="user", uselist=False)
     roles = relationship("UserRole", back_populates="user")
     attempts = relationship("QuizAttempt", back_populates="user")
+    progress = relationship("UserProgress", back_populates="user")
 
 class Profile(Base):
     __tablename__ = "profiles"
@@ -81,6 +82,7 @@ class QuizAttempt(Base):
     analytics_score = Column(Integer, default=0, nullable=False)
     tester_score = Column(Integer, default=0, nullable=False)
     total_score = Column(Integer, default=0, nullable=False)
+    share_id = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False)
     completed_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="attempts")
@@ -98,3 +100,35 @@ class QuizResponse(Base):
 
     attempt = relationship("QuizAttempt", back_populates="responses")
     question = relationship("Question", back_populates="responses")
+
+class Roadmap(Base):
+    __tablename__ = "roadmaps"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    domain = Column(String, nullable=False)
+    step_number = Column(Integer, nullable=False)
+    title = Column(Text, nullable=False)
+    description = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class Resource(Base):
+    __tablename__ = "resources"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    domain = Column(String, nullable=False)
+    title = Column(Text, nullable=False)
+    link = Column(Text, nullable=False)
+    type = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class UserProgress(Base):
+    __tablename__ = "user_progress"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    roadmap_step_id = Column(UUID(as_uuid=True), ForeignKey("roadmaps.id"), nullable=False)
+    is_completed = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="progress")
+    roadmap_step = relationship("Roadmap")

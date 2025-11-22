@@ -96,8 +96,59 @@ class QuizAttemptCreate(BaseModel):
 class QuizAttempt(QuizAttemptBase):
     id: UUID4
     user_id: UUID4
+    share_id: UUID4
     completed_at: datetime
     # responses: List[QuizResponse] = [] # Optional to include responses
+
+    class Config:
+        from_attributes = True
+
+# Roadmap Schemas
+class RoadmapBase(BaseModel):
+    domain: str
+    step_number: int
+    title: str
+    description: str
+
+class RoadmapCreate(RoadmapBase):
+    pass
+
+class Roadmap(RoadmapBase):
+    id: UUID4
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+# Resource Schemas
+class ResourceBase(BaseModel):
+    domain: str
+    title: str
+    link: str
+    type: str
+
+class ResourceCreate(ResourceBase):
+    pass
+
+class Resource(ResourceBase):
+    id: UUID4
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+# User Progress Schemas
+class UserProgressBase(BaseModel):
+    roadmap_step_id: UUID4
+    is_completed: bool
+
+class UserProgressCreate(UserProgressBase):
+    pass
+
+class UserProgress(UserProgressBase):
+    id: UUID4
+    user_id: UUID4
+    created_at: datetime
 
     class Config:
         from_attributes = True

@@ -2,6 +2,7 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   User,
   Mail,
@@ -11,6 +12,7 @@ import {
   RefreshCw,
   Eye,
   Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import {
   LineChart,
@@ -24,26 +26,34 @@ import {
   ResponsiveContainer,
   Legend
 } from "recharts";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import api from "@/lib/api";
 
 const fetchDashboardData = async () => {
-  const [profileRes, attemptsRes] = await Promise.all([
+  const [profileRes, attemptsRes, progressRes] = await Promise.all([
     api.get('/auth/me'),
-    api.get('/quiz/attempts')
+    api.get('/quiz/attempts'),
+    api.get('/progress/')
   ]);
 
   return {
     profile: profileRes.data,
-    attempts: attemptsRes.data
+    attempts: attemptsRes.data,
+    progress: progressRes.data
   };
+};
+
+const fetchRoadmap = async (domain) => {
+  const res = await api.get(`/content/roadmaps?domain=${domain}`);
+  return res.data;
 };
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const queryClient = useQueryClient();
 
   const {
     data,
@@ -54,6 +64,35 @@ export default function Dashboard() {
     queryFn: fetchDashboardData,
     enabled: !authLoading && !!user,
   });
+
+  const latestAttempt = data?.attempts?.[data.attempts.length - 1];
+  const recommendedDomain = latestAttempt?.recommended_domain;
+
+  const {
+    data: roadmap,
+    isLoading: roadmapLoading
+  } = useQuery({
+    queryKey: ["roadmap", recommendedDomain],
+    queryFn: () => fetchRoadmap(recommendedDomain),
+    enabled: !!recommendedDomain,
+  });
+
+  const updateProgressMutation = useMutation({
+    mutationFn: async ({ stepId, isCompleted }) => {
+      if (isCompleted) {
+        await api.post('/progress/', { roadmap_step_id: stepId, is_completed: true });
+      } else {
+        await api.delete(`/progress/${stepId}`);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["dashboardData", user?.id]);
+    },
+  });
+
+  const handleProgressToggle = (stepId, currentStatus) => {
+    updateProgressMutation.mutate({ stepId, isCompleted: !currentStatus });
+  };
 
   // Redirect if not authenticated
   if (!authLoading && !user) {
@@ -105,7 +144,7 @@ export default function Dashboard() {
   }
 
   // Data is loaded! Let's format it for the components.
-  const { profile, attempts } = data;
+  const { profile, attempts, progress } = data;
 
   // Format for "Progress Over Time" chart
   const progressData = attempts.map((att) => ({
@@ -123,6 +162,12 @@ export default function Dashboard() {
 
   // Format for "Past Attempts" list (latest first)
   const pastAttempts = [...attempts].reverse();
+
+  // Calculate Roadmap Progress
+  const completedStepIds = new Set(progress.map(p => p.roadmap_step_id));
+  const totalSteps = roadmap?.length || 0;
+  const completedSteps = roadmap?.filter(step => completedStepIds.has(step.id)).length || 0;
+  const progressPercentage = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -245,13 +290,55 @@ export default function Dashboard() {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="Programming" fill="hsl(var(--chart-1))" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="Analytics" fill="hsl(var(--chart-2))" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="Testing" fill="hsl(var(--chart-3))" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="Programming" fill="hsl(var(--chart-1))" />
+                <Bar dataKey="Analytics" fill="hsl(var(--chart-2))" />
+                <Bar dataKey="Testing" fill="hsl(var(--chart-3))" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
+
+        {/* Learning Roadmap Section */}
+        {roadmap && roadmap.length > 0 && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5" />
+                  My Learning Roadmap ({recommendedDomain})
+                </CardTitle>
+                <Badge variant="outline">{progressPercentage}% Completed</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {roadmap.map((step) => {
+                  const isCompleted = completedStepIds.has(step.id);
+                  return (
+                    <div key={step.id} className={`flex items-start gap-4 p-4 border rounded-lg transition-colors ${isCompleted ? 'bg-muted/30' : ''}`}>
+                      <Checkbox
+                        id={`step-${step.id}`}
+                        checked={isCompleted}
+                        onCheckedChange={() => handleProgressToggle(step.id, isCompleted)}
+                      />
+                      <div className="grid gap-1.5 leading-none">
+                        <label
+                          htmlFor={`step-${step.id}`}
+                          className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${isCompleted ? 'line-through text-muted-foreground' : ''}`}
+                        >
+                          {step.title}
+                        </label>
+                        <p className={`text-sm text-muted-foreground ${isCompleted ? 'line-through' : ''}`}>
+                          {step.description}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Past Attempts */}
         <Card>
@@ -259,42 +346,45 @@ export default function Dashboard() {
             <CardTitle>Past Attempts</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {pastAttempts.map((attempt, index) => (
                 <div
                   key={attempt.id}
                   className="flex items-center justify-between p-4 border rounded-lg hover:border-primary/50 transition-colors"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-primary">{attempt.total_score}</div>
-                      <div className="text-xs text-muted-foreground">Score</div>
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="font-bold text-primary">
+                        {pastAttempts.length - index}
+                      </span>
                     </div>
                     <div>
-                      <div className="font-semibold capitalize">
+                      <p className="font-semibold capitalize">
                         {attempt.recommended_domain}
-                      </div>
-                      <div className="text-sm text-muted-foreground flex items-center gap-2">
-                        <Calendar className="h-3 w-3" />
+                      </p>
+                      <p className="text-sm text-muted-foreground">
                         {new Date(attempt.completed_at).toLocaleDateString("en-US", {
-                          year: "numeric",
                           month: "long",
                           day: "numeric",
+                          year: "numeric",
                         })}
-                      </div>
+                      </p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    {index === 0 && (
-                      <Badge className="bg-accent">Latest</Badge>
-                    )}
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <p className="font-semibold">{attempt.total_score} / 30</p>
+                      <p className="text-sm text-muted-foreground">Total Score</p>
+                    </div>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => navigate("/results", { state: { attemptId: attempt.id } })}
+                      onClick={() =>
+                        navigate("/results", { state: { attemptId: attempt.id } })
+                      }
                     >
-                      <Eye className="h-4 w-4 mr-1" />
-                      View Results
+                      <Eye className="mr-2 h-4 w-4" />
+                      View
                     </Button>
                   </div>
                 </div>
