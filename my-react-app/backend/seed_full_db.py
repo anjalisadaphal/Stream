@@ -858,43 +858,65 @@ questions_data_batches_2_to_5 = [
 ]
 
 roadmaps_data = [
-    # Programmer
-    {"domain": "programmer", "step_number": 1, "title": "Master the Fundamentals", "description": "Learn Python/JavaScript in depth. Understand variables, loops, functions, and data types."},
-    {"domain": "programmer", "step_number": 2, "title": "Learn a Framework", "description": "Pick a web framework like React, Django, or Node.js and build a simple application."},
-    {"domain": "programmer", "step_number": 3, "title": "Understand Databases", "description": "Learn SQL basics (SELECT, INSERT, UPDATE) and how to connect a database to your app."},
-    {"domain": "programmer", "step_number": 4, "title": "Build Projects", "description": "Create 3-5 portfolio projects (e.g., To-Do App, Weather App, Blog)."},
-    {"domain": "programmer", "step_number": 5, "title": "Prepare for Interviews", "description": "Practice Data Structures & Algorithms (DSA) on LeetCode or HackerRank."},
+    # ---------------- Programmer ----------------
+    {"domain": "programmer", "step_number": 1, "title": "Master the Fundamentals", "description": "Learn Python/JavaScript deeply—variables, loops, functions, arrays, and OOP basics."},
+    {"domain": "programmer", "step_number": 2, "title": "Learn Version Control", "description": "Understand Git & GitHub—commits, branches, merging, resolving conflicts."},
+    {"domain": "programmer", "step_number": 3, "title": "Learn a Framework", "description": "Pick React, Django, Node.js, or Spring Boot. Build small modules."},
+    {"domain": "programmer", "step_number": 4, "title": "Understand Databases", "description": "Learn SQL (SELECT, JOIN, GROUP BY) and NoSQL (MongoDB) fundamentals."},
+    {"domain": "programmer", "step_number": 5, "title": "Build Projects", "description": "Create 3–5 portfolio projects (E-Commerce, Chat App, Finance Tracker)."},
+    {"domain": "programmer", "step_number": 6, "title": "Master DSA", "description": "Solve problems on arrays, strings, recursion, DP, and graphs regularly."},
+    {"domain": "programmer", "step_number": 7, "title": "Learn System Design Basics", "description": "Understand APIs, caching, load balancing, databases, and scaling concepts."},
+    {"domain": "programmer", "step_number": 8, "title": "Prepare for Interviews", "description": "Practice DSA + core CS + projects + mock interviews on platforms like Pramp."},
 
-    # Analytics
-    {"domain": "analytics", "step_number": 1, "title": "Learn SQL Fundamentals", "description": "Master database queries, joins, and aggregations. This is the core of analytics."},
-    {"domain": "analytics", "step_number": 2, "title": "Data Visualization", "description": "Learn to create charts and dashboards using Excel, Tableau, or Power BI."},
-    {"domain": "analytics", "step_number": 3, "title": "Python for Analytics", "description": "Learn Python libraries like Pandas, NumPy, and Matplotlib for data manipulation."},
-    {"domain": "analytics", "step_number": 4, "title": "Build Analytics Projects", "description": "Find a dataset on Kaggle and perform a complete analysis, visualizing your findings."},
-    {"domain": "analytics", "step_number": 5, "title": "Advanced Analytics", "description": "Introduction to Machine Learning basics and statistical modeling."},
+    # ---------------- Analytics ----------------
+    {"domain": "analytics", "step_number": 1, "title": "Learn SQL Fundamentals", "description": "Master joins, grouping, filtering, and window functions."},
+    {"domain": "analytics", "step_number": 2, "title": "Learn Statistics", "description": "Understand mean, median, variance, probability, and hypothesis testing."},
+    {"domain": "analytics", "step_number": 3, "title": "Data Visualization Tools", "description": "Learn Tableau/Power BI to build dashboards and reports."},
+    {"domain": "analytics", "step_number": 4, "title": "Python for Analytics", "description": "Learn Pandas, NumPy, Matplotlib, Seaborn for data manipulation."},
+    {"domain": "analytics", "step_number": 5, "title": "Build Data Projects", "description": "Analyze Kaggle datasets and build end-to-end analytics case studies."},
+    {"domain": "analytics", "step_number": 6, "title": "Excel & Advanced Excel", "description": "Master Pivot Tables, VLOOKUP/XLOOKUP, conditional formatting."},
+    {"domain": "analytics", "step_number": 7, "title": "Learn ML Basics", "description": "Understand linear regression, classification, clustering, and model evaluation."},
+    {"domain": "analytics", "step_number": 8, "title": "Prepare for Interviews", "description": "Practice SQL challenges, case studies, and statistics interview questions."},
 
-    # Tester
-    {"domain": "tester", "step_number": 1, "title": "Testing Fundamentals", "description": "Understand manual testing concepts, SDLC, STLC, and bug life cycle."},
-    {"domain": "tester", "step_number": 2, "title": "Test Automation", "description": "Learn an automation tool like Selenium, Cypress, or Playwright."},
-    {"domain": "tester", "step_number": 3, "title": "API Testing", "description": "Learn how to test APIs using Postman or REST Assured."},
-    {"domain": "tester", "step_number": 4, "title": "Build Test Projects", "description": "Create a comprehensive test suite for a demo website."},
-    {"domain": "tester", "step_number": 5, "title": "CI/CD Integration", "description": "Learn how to integrate your tests into a CI/CD pipeline (e.g., GitHub Actions)."},
+    # ---------------- Tester ----------------
+    {"domain": "tester", "step_number": 1, "title": "Testing Fundamentals", "description": "Understand SDLC, STLC, test case writing, bug life cycle, and QA terms."},
+    {"domain": "tester", "step_number": 2, "title": "Manual Testing Practice", "description": "Test demo apps, write bug reports, and practice real industry workflows."},
+    {"domain": "tester", "step_number": 3, "title": "Automation Testing", "description": "Learn Selenium, Cypress, or Playwright for UI automation."},
+    {"domain": "tester", "step_number": 4, "title": "API Testing", "description": "Use Postman or REST Assured to test APIs, write assertions, and automate flows."},
+    {"domain": "tester", "step_number": 5, "title": "Performance Testing", "description": "Learn JMeter or Locust to test application load and stress."},
+    {"domain": "tester", "step_number": 6, "title": "Build Test Frameworks", "description": "Implement POM, CI/CD integration, test reporting, and reusable scripts."},
+    {"domain": "tester", "step_number": 7, "title": "Learn CI/CD Basics", "description": "Integrate test pipelines using GitHub Actions, Jenkins, or GitLab CI."},
+    {"domain": "tester", "step_number": 8, "title": "Prepare for Interviews", "description": "Practice test scenarios, QA theory, automation questions, and coding basics."},
 ]
 
 resources_data = [
-    # Programmer
-    {"domain": "programmer", "title": "Full Stack Web Development", "link": "https://www.udemy.com/course/the-web-developer-bootcamp/", "type": "Course"},
+    # ---------------- Programmer ----------------
+    {"domain": "programmer", "title": "Full Stack Web Development Bootcamp", "link": "https://www.udemy.com/course/the-web-developer-bootcamp/", "type": "Course"},
     {"domain": "programmer", "title": "FreeCodeCamp", "link": "https://www.freecodecamp.org/", "type": "Course"},
     {"domain": "programmer", "title": "MDN Web Docs", "link": "https://developer.mozilla.org/", "type": "Guide"},
-    
-    # Analytics
+    {"domain": "programmer", "title": "NeetCode DSA", "link": "https://neetcode.io/", "type": "Practice"},
+    {"domain": "programmer", "title": "JavaScript.info", "link": "https://javascript.info/", "type": "Guide"},
+    {"domain": "programmer", "title": "Spring Boot Documentation", "link": "https://spring.io/projects/spring-boot", "type": "Guide"},
+    {"domain": "programmer", "title": "LeetCode", "link": "https://leetcode.com/", "type": "Practice"},
+    {"domain": "programmer", "title": "System Design Primer", "link": "https://github.com/donnemartin/system-design-primer", "type": "Guide"},
+
+    # ---------------- Analytics ----------------
     {"domain": "analytics", "title": "Google Data Analytics Certificate", "link": "https://www.coursera.org/professional-certificates/google-data-analytics", "type": "Course"},
     {"domain": "analytics", "title": "Kaggle", "link": "https://www.kaggle.com/", "type": "Practice"},
-    {"domain": "analytics", "title": "Tableau Public", "link": "https://public.tableau.com/en-us/s/", "type": "Tool"},
+    {"domain": "analytics", "title": "Tableau Public", "link": "https://public.tableau.com/", "type": "Tool"},
+    {"domain": "analytics", "title": "Power BI Learning Path", "link": "https://learn.microsoft.com/en-us/power-bi/", "type": "Guide"},
+    {"domain": "analytics", "title": "Analytics Vidhya", "link": "https://www.analyticsvidhya.com/", "type": "Guide"},
+    {"domain": "analytics", "title": "Towards Data Science", "link": "https://towardsdatascience.com/", "type": "Blog"},
+    {"domain": "analytics", "title": "StatQuest (YouTube)", "link": "https://www.youtube.com/user/joshstarmer", "type": "Video"},
 
-    # Tester
+    # ---------------- Tester ----------------
     {"domain": "tester", "title": "Ministry of Testing", "link": "https://www.ministryoftesting.com/", "type": "Community"},
-    {"domain": "tester", "title": "TestAutomationUniversity", "link": "https://testautomationuniversity.applitools.com/", "type": "Course"},
-    {"domain": "tester", "title": "Selenium Documentation", "link": "https://www.selenium.dev/documentation/", "type": "Guide"},
+    {"domain": "tester", "title": "Test Automation University", "link": "https://testautomationuniversity.applitools.com/", "type": "Course"},
+    {"domain": "tester", "title": "Selenium Official Docs", "link": "https://www.selenium.dev/documentation/", "type": "Guide"},
+    {"domain": "tester", "title": "Postman Learning Center", "link": "https://learning.postman.com/", "type": "Guide"},
+    {"domain": "tester", "title": "JMeter User Manual", "link": "https://jmeter.apache.org/usermanual/", "type": "Guide"},
+    {"domain": "tester", "title": "Cypress Documentation", "link": "https://docs.cypress.io/", "type": "Guide"},
+    {"domain": "tester", "title": "Playwright Docs", "link": "https://playwright.dev/", "type": "Guide"}
 ]
 
 async def seed_data():
