@@ -43,6 +43,7 @@ app.add_middleware(
         "http://localhost:5173",  # Local development
         "http://localhost:3000",  # Alternative local port
     ],
+    allow_origin_regex="https://.*\\.vercel\\.app",
     allow_credentials=True,  # Enable credentials support
     allow_methods=["*"],
     allow_headers=["*"],
