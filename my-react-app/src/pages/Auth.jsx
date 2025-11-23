@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
+import ParticlesBackground from "@/components/ParticlesBackground";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -74,6 +75,7 @@ const Auth = () => {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
+        <ParticlesBackground />
         <Card className="w-full max-w-md glass-card relative z-10">
           <CardContent className="pt-6 pb-6 flex items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -85,6 +87,9 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative p-4">
+      {/* tsparticles Background - Only on Auth page */}
+      <ParticlesBackground />
+
       <Card className="w-full max-w-md glass-card shadow-2xl border-2 neon-border-hover hover-lift relative z-10 fade-in">
         <CardHeader className="space-y-1 pb-4">
           <CardTitle className="text-3xl font-bold text-center gradient-text shimmer">
