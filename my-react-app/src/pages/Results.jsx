@@ -19,11 +19,10 @@ import {
   Loader2,
 } from "lucide-react";
 import {
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
   ResponsiveContainer,
   BarChart,
   Bar,
@@ -96,6 +95,8 @@ const salaryData = [
   { level: "Mid", min: 12, max: 20 },
   { level: "Senior", min: 25, max: 40 },
 ];
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 export default function Results() {
   const location = useLocation();
@@ -303,21 +304,25 @@ export default function Results() {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <RadarChart data={radarData}>
-                      <PolarGrid stroke="hsl(var(--border))" />
-                      <PolarAngleAxis
-                        dataKey="domain"
-                        tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
-                      />
-                      <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                      <Radar
-                        name="Score"
+                    <PieChart>
+                      <Pie
+                        data={radarData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
                         dataKey="score"
-                        stroke="hsl(var(--primary))"
-                        fill="hsl(var(--primary))"
-                        fillOpacity={0.3}
-                      />
-                    </RadarChart>
+                        nameKey="domain"
+                      >
+                        {radarData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
