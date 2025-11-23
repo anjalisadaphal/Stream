@@ -184,6 +184,678 @@ questions_data = [
         "difficulty": DifficultyLevel.medium
     },
 ]
+questions_data_batch_1 = [
+    # ------------------ DSA ------------------
+    {
+        "question_text": "Which data structure uses FIFO (First In First Out)?",
+        "option_1": "Stack",
+        "option_2": "Queue",
+        "option_3": "Tree",
+        "option_4": "Graph",
+        "correct_answer": 2,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.easy
+    },
+    {
+        "question_text": "What is the worst-case time complexity of Quick Sort?",
+        "option_1": "O(n log n)",
+        "option_2": "O(n)",
+        "option_3": "O(n²)",
+        "option_4": "O(log n)",
+        "correct_answer": 3,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.medium
+    },
+    {
+        "question_text": "Which traversal of a binary tree visits nodes in Left → Root → Right?",
+        "option_1": "Inorder",
+        "option_2": "Preorder",
+        "option_3": "Postorder",
+        "option_4": "Level Order",
+        "correct_answer": 1,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.easy
+    },
+    {
+        "question_text": "A hash collision can be resolved using which method?",
+        "option_1": "Binary Search",
+        "option_2": "Chaining",
+        "option_3": "Merge Sort",
+        "option_4": "Heapify",
+        "correct_answer": 2,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.medium
+    },
+
+    # ------------------ Operating System ------------------
+    {
+        "question_text": "Which scheduling algorithm may cause starvation?",
+        "option_1": "FCFS",
+        "option_2": "SJF",
+        "option_3": "Round Robin",
+        "option_4": "EDF",
+        "correct_answer": 2,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.medium
+    },
+    {
+        "question_text": "A process in 'waiting' state is waiting for?",
+        "option_1": "CPU",
+        "option_2": "Memory",
+        "option_3": "I/O",
+        "option_4": "Cache",
+        "correct_answer": 3,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.easy
+    },
+    {
+        "question_text": "Thrashing occurs when:",
+        "option_1": "CPU overheats",
+        "option_2": "Too many interrupts occur",
+        "option_3": "Pages are swapped excessively",
+        "option_4": "Deadlock happens",
+        "correct_answer": 3,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.medium
+    },
+
+    # ------------------ DBMS ------------------
+    {
+        "question_text": "Which normal form removes transitive dependency?",
+        "option_1": "1NF",
+        "option_2": "2NF",
+        "option_3": "3NF",
+        "option_4": "BCNF",
+        "correct_answer": 3,
+        "domain": QuizDomain.analytics,
+        "difficulty": DifficultyLevel.medium
+    },
+    {
+        "question_text": "Which command is used to remove a table in SQL?",
+        "option_1": "DELETE",
+        "option_2": "DROP",
+        "option_3": "REMOVE",
+        "option_4": "CLEAR",
+        "correct_answer": 2,
+        "domain": QuizDomain.analytics,
+        "difficulty": DifficultyLevel.easy
+    },
+    {
+        "question_text": "A primary key:",
+        "option_1": "Allows duplicates",
+        "option_2": "Can be NULL",
+        "option_3": "Uniquely identifies a record",
+        "option_4": "Is optional",
+        "correct_answer": 3,
+        "domain": QuizDomain.analytics,
+        "difficulty": DifficultyLevel.easy
+    },
+
+    # ------------------ Computer Networks ------------------
+    {
+        "question_text": "Which protocol is used to send emails?",
+        "option_1": "SMTP",
+        "option_2": "FTP",
+        "option_3": "HTTP",
+        "option_4": "SSH",
+        "correct_answer": 1,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.easy
+    },
+    {
+        "question_text": "In networking, TTL stands for:",
+        "option_1": "Time to Load",
+        "option_2": "Time to Live",
+        "option_3": "Total Transmission Length",
+        "option_4": "Transaction Log Level",
+        "correct_answer": 2,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.medium
+    },
+    {
+        "question_text": "Which layer of OSI is responsible for routing?",
+        "option_1": "Transport",
+        "option_2": "Network",
+        "option_3": "Session",
+        "option_4": "Data Link",
+        "correct_answer": 2,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.medium
+    },
+
+    # ------------------ OOPS ------------------
+    {
+        "question_text": "Which pillar of OOP refers to restricting access to data?",
+        "option_1": "Abstraction",
+        "option_2": "Inheritance",
+        "option_3": "Encapsulation",
+        "option_4": "Polymorphism",
+        "correct_answer": 3,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.easy
+    },
+    {
+        "question_text": "Which of the following supports runtime polymorphism?",
+        "option_1": "Method Overloading",
+        "option_2": "Method Overriding",
+        "option_3": "Constructor",
+        "option_4": "Static Method",
+        "correct_answer": 2,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.medium
+    },
+
+    # ------------------ Programming ------------------
+    {
+        "question_text": "Which of the following is NOT a Java primitive type?",
+        "option_1": "int",
+        "option_2": "float",
+        "option_3": "string",
+        "option_4": "char",
+        "correct_answer": 3,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.easy
+    },
+    {
+        "question_text": "Which operator is used for exponentiation in Python?",
+        "option_1": "^",
+        "option_2": "**",
+        "option_3": "exp()",
+        "option_4": "//",
+        "correct_answer": 2,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.easy
+    },
+    {
+        "question_text": "JavaScript is:",
+        "option_1": "Compiled",
+        "option_2": "Interpreted",
+        "option_3": "Both",
+        "option_4": "None",
+        "correct_answer": 2,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.easy
+    },
+
+    # ------------------ Mixed QA / Testing ------------------
+    {
+        "question_text": "What is the purpose of a test case?",
+        "option_1": "To describe test procedure",
+        "option_2": "To write the source code",
+        "option_3": "To deploy the system",
+        "option_4": "To manage database",
+        "correct_answer": 1,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.easy
+    },
+    {
+        "question_text": "Boundary value analysis is a type of:",
+        "option_1": "Black-box testing",
+        "option_2": "White-box testing",
+        "option_3": "Debugging",
+        "option_4": "Unit testing",
+        "correct_answer": 1,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.medium
+    }
+]
+
+questions_data_batches_2_to_5 = [
+    # ------------------ Batch 2 (Questions 21–40) ------------------
+
+    # DSA
+    {
+        "question_text": "Which data structure is used in BFS traversal?",
+        "option_1": "Stack",
+        "option_2": "Queue",
+        "option_3": "Heap",
+        "option_4": "Tree",
+        "correct_answer": 2,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.medium
+    },
+    {
+        "question_text": "Which algorithm is used to detect a cycle in a linked list?",
+        "option_1": "Kadane's Algorithm",
+        "option_2": "Two Pointer Method",
+        "option_3": "Dijkstra's Algorithm",
+        "option_4": "Kruskal's Algorithm",
+        "correct_answer": 2,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.medium
+    },
+    {
+        "question_text": "Which heap is used in Dijkstra’s algorithm?",
+        "option_1": "Binary Heap",
+        "option_2": "Fibonacci Heap",
+        "option_3": "Binomial Heap",
+        "option_4": "Leftist Heap",
+        "correct_answer": 2,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.hard
+    },
+
+    # OS
+    {
+        "question_text": "Which algorithm prevents deadlock by assigning priorities?",
+        "option_1": "Banker's Algorithm",
+        "option_2": "Priority Scheduling",
+        "option_3": "Round Robin",
+        "option_4": "FIFO",
+        "correct_answer": 1,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.hard
+    },
+    {
+        "question_text": "Context switching occurs when:",
+        "option_1": "A process terminates",
+        "option_2": "CPU switches from one process to another",
+        "option_3": "Memory becomes full",
+        "option_4": "Cache overflows",
+        "correct_answer": 2,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.medium
+    },
+
+    # DBMS
+    {
+        "question_text": "Which join returns only matching rows?",
+        "option_1": "Left Join",
+        "option_2": "Right Join",
+        "option_3": "Full Join",
+        "option_4": "Inner Join",
+        "correct_answer": 4,
+        "domain": QuizDomain.analytics,
+        "difficulty": DifficultyLevel.easy
+    },
+    {
+        "question_text": "Indexing improves:",
+        "option_1": "Insert speed",
+        "option_2": "Query performance",
+        "option_3": "Backup speed",
+        "option_4": "Delete performance",
+        "correct_answer": 2,
+        "domain": QuizDomain.analytics,
+        "difficulty": DifficultyLevel.medium
+    },
+
+    # CN
+    {
+        "question_text": "Which device breaks a collision domain?",
+        "option_1": "Hub",
+        "option_2": "Router",
+        "option_3": "Repeater",
+        "option_4": "Transceiver",
+        "correct_answer": 2,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.medium
+    },
+    {
+        "question_text": "Which protocol resolves IP to MAC address?",
+        "option_1": "DNS",
+        "option_2": "ARP",
+        "option_3": "RARP",
+        "option_4": "TCP",
+        "correct_answer": 2,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.easy
+    },
+
+    # OOPS
+    {
+        "question_text": "Which OOP feature allows multiple forms of the same method?",
+        "option_1": "Encapsulation",
+        "option_2": "Inheritance",
+        "option_3": "Polymorphism",
+        "option_4": "Abstraction",
+        "correct_answer": 3,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.medium
+    },
+
+    # Programming
+    {
+        "question_text": "Which language uses indentation as syntax?",
+        "option_1": "Java",
+        "option_2": "C++",
+        "option_3": "Python",
+        "option_4": "C",
+        "correct_answer": 3,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.easy
+    },
+
+    # Testing
+    {
+        "question_text": "Smoke testing is also known as:",
+        "option_1": "Sanity testing",
+        "option_2": "Build verification testing",
+        "option_3": "Load testing",
+        "option_4": "Security testing",
+        "correct_answer": 2,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.easy
+    },
+
+
+    # ------------------ Batch 3 (Questions 41–60) ------------------
+
+    # DSA
+    {
+        "question_text": "Which tree is always height balanced?",
+        "option_1": "BST",
+        "option_2": "AVL Tree",
+        "option_3": "B-Tree",
+        "option_4": "Trie",
+        "correct_answer": 2,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.hard
+    },
+    {
+        "question_text": "Which of the following uses backtracking?",
+        "option_1": "Binary Search",
+        "option_2": "Tower of Hanoi",
+        "option_3": "N-Queens Problem",
+        "option_4": "Bubble Sort",
+        "correct_answer": 3,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.hard
+    },
+
+    # OS
+    {
+        "question_text": "Which of the following is not a deadlock condition?",
+        "option_1": "Mutual exclusion",
+        "option_2": "Hold and wait",
+        "option_3": "No preemption",
+        "option_4": "Starvation",
+        "correct_answer": 4,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.medium
+    },
+
+    # DBMS
+    {
+        "question_text": "Which SQL keyword removes duplicate rows?",
+        "option_1": "UNIQUE",
+        "option_2": "DISTINCT",
+        "option_3": "NODUP",
+        "option_4": "FILTER",
+        "correct_answer": 2,
+        "domain": QuizDomain.analytics,
+        "difficulty": DifficultyLevel.easy
+    },
+    {
+        "question_text": "Truncate command:",
+        "option_1": "Removes table permanently",
+        "option_2": "Removes all rows but keeps structure",
+        "option_3": "Deletes specific rows",
+        "option_4": "Removes database",
+        "correct_answer": 2,
+        "domain": QuizDomain.analytics,
+        "difficulty": DifficultyLevel.medium
+    },
+
+    # CN
+    {
+        "question_text": "Which layer in TCP/IP model handles reliable delivery?",
+        "option_1": "Transport Layer",
+        "option_2": "Network Layer",
+        "option_3": "Application Layer",
+        "option_4": "Link Layer",
+        "correct_answer": 1,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.medium
+    },
+
+    # Programming
+    {
+        "question_text": "Which keyword creates a constant in Java?",
+        "option_1": "static",
+        "option_2": "final",
+        "option_3": "constant",
+        "option_4": "immutable",
+        "correct_answer": 2,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.easy
+    },
+
+    # OOPS
+    {
+        "question_text": "Which of the following is an example of abstraction?",
+        "option_1": "Using a car without knowing engine details",
+        "option_2": "Method overriding",
+        "option_3": "Using private variables",
+        "option_4": "Using constructors",
+        "correct_answer": 1,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.easy
+    },
+
+    # Testing
+    {
+        "question_text": "Load testing checks:",
+        "option_1": "How fast UI loads",
+        "option_2": "System behavior under heavy load",
+        "option_3": "Memory leak",
+        "option_4": "Database encryption",
+        "correct_answer": 2,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.medium
+    },
+
+
+    # ------------------ Batch 4 (Questions 61–80) ------------------
+
+    # DSA
+    {
+        "question_text": "Which sorting algorithm is stable?",
+        "option_1": "Quick Sort",
+        "option_2": "Merge Sort",
+        "option_3": "Heap Sort",
+        "option_4": "Selection Sort",
+        "correct_answer": 2,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.medium
+    },
+    {
+        "question_text": "A complete binary tree has:",
+        "option_1": "Nodes aligned to the left",
+        "option_2": "Nodes aligned to the right",
+        "option_3": "All levels filled except possibly last",
+        "option_4": "Exactly 2 children at every node",
+        "correct_answer": 3,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.easy
+    },
+
+    # OS
+    {
+        "question_text": "Which of the following is not a scheduling algorithm?",
+        "option_1": "FCFS",
+        "option_2": "SJF",
+        "option_3": "LRU",
+        "option_4": "Round Robin",
+        "correct_answer": 3,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.easy
+    },
+
+    # DBMS
+    {
+        "question_text": "Which level of abstraction describes how data is stored?",
+        "option_1": "Logical Level",
+        "option_2": "Physical Level",
+        "option_3": "View Level",
+        "option_4": "Conceptual Level",
+        "correct_answer": 2,
+        "domain": QuizDomain.analytics,
+        "difficulty": DifficultyLevel.medium
+    },
+    {
+        "question_text": "Which is a non-relational database?",
+        "option_1": "MySQL",
+        "option_2": "PostgreSQL",
+        "option_3": "MongoDB",
+        "option_4": "Oracle",
+        "correct_answer": 3,
+        "domain": QuizDomain.analytics,
+        "difficulty": DifficultyLevel.easy
+    },
+
+    # CN
+    {
+        "question_text": "What is the maximum length of an IPv4 address?",
+        "option_1": "16 bits",
+        "option_2": "32 bits",
+        "option_3": "64 bits",
+        "option_4": "128 bits",
+        "correct_answer": 2,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.easy
+    },
+    {
+        "question_text": "HTTPS uses which protocol for security?",
+        "option_1": "SSL/TLS",
+        "option_2": "SSH",
+        "option_3": "IPSec",
+        "option_4": "PGP",
+        "correct_answer": 1,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.medium
+    },
+
+    # Programming
+    {
+        "question_text": "Which is used for asynchronous operations in JavaScript?",
+        "option_1": "setTimeout",
+        "option_2": "await",
+        "option_3": "async functions",
+        "option_4": "All of the above",
+        "correct_answer": 4,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.medium
+    },
+
+    # Testing
+    {
+        "question_text": "Which testing verifies individual units of code?",
+        "option_1": "Unit Testing",
+        "option_2": "Integration Testing",
+        "option_3": "Regression Testing",
+        "option_4": "Acceptance Testing",
+        "correct_answer": 1,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.easy
+    },
+
+
+    # ------------------ Batch 5 (Questions 81–100) ------------------
+
+    # DSA
+    {
+        "question_text": "Graph with no cycles is called:",
+        "option_1": "DAG",
+        "option_2": "Tree",
+        "option_3": "Bipartite Graph",
+        "option_4": "Subgraph",
+        "correct_answer": 1,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.medium
+    },
+    {
+        "question_text": "Which operation on stack is not valid?",
+        "option_1": "Push",
+        "option_2": "Pop",
+        "option_3": "Insert at bottom",
+        "option_4": "Peek",
+        "correct_answer": 3,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.medium
+    },
+
+    # OS
+    {
+        "question_text": "Which of the following is a page replacement algorithm?",
+        "option_1": "SSTF",
+        "option_2": "LRU",
+        "option_3": "SCAN",
+        "option_4": "FCFS",
+        "correct_answer": 2,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.medium
+    },
+
+    # DBMS
+    {
+        "question_text": "ACID property ensuring no partial transactions is:",
+        "option_1": "Consistency",
+        "option_2": "Atomicity",
+        "option_3": "Isolation",
+        "option_4": "Durability",
+        "correct_answer": 2,
+        "domain": QuizDomain.analytics,
+        "difficulty": DifficultyLevel.medium
+    },
+    {
+        "question_text": "Stored procedures are executed:",
+        "option_1": "On client",
+        "option_2": "On server",
+        "option_3": "On cache",
+        "option_4": "On proxy",
+        "correct_answer": 2,
+        "domain": QuizDomain.analytics,
+        "difficulty": DifficultyLevel.medium
+    },
+
+    # CN
+    {
+        "question_text": "Which protocol uses 3-way handshake?",
+        "option_1": "UDP",
+        "option_2": "TCP",
+        "option_3": "FTP",
+        "option_4": "SMTP",
+        "correct_answer": 2,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.easy
+    },
+
+    # OOPS
+    {
+        "question_text": "Which OOP concept hides background details?",
+        "option_1": "Polymorphism",
+        "option_2": "Abstraction",
+        "option_3": "Inheritance",
+        "option_4": "Encapsulation",
+        "correct_answer": 2,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.easy
+    },
+
+    # Programming
+    {
+        "question_text": "Which of these is not a loop in Java?",
+        "option_1": "for",
+        "option_2": "foreach",
+        "option_3": "while",
+        "option_4": "repeat-until",
+        "correct_answer": 4,
+        "domain": QuizDomain.programmer,
+        "difficulty": DifficultyLevel.easy
+    },
+
+    # Testing
+    {
+        "question_text": "Which type of testing ensures security vulnerabilities?",
+        "option_1": "Load Testing",
+        "option_2": "Functional Testing",
+        "option_3": "Security Testing",
+        "option_4": "Sanity Testing",
+        "correct_answer": 3,
+        "domain": QuizDomain.tester,
+        "difficulty": DifficultyLevel.medium
+    }
+]
 
 roadmaps_data = [
     # Programmer
