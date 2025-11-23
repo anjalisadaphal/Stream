@@ -16,6 +16,7 @@ import {
   Target,
   Lightbulb,
   CheckCircle2,
+  XCircle,
   Loader2,
 } from "lucide-react";
 import {
@@ -132,9 +133,8 @@ export default function Results() {
         }
 
         // Fetch the specific attempt
-        const response = await api.get("/quiz/attempts");
-        const attempts = response.data;
-        const data = attempts.find(a => a.id === attemptId);
+        const response = await api.get(`/quiz/attempts/${attemptId}`);
+        const data = response.data;
 
         if (!data) {
           throw new Error("Attempt not found.");
@@ -247,11 +247,12 @@ export default function Results() {
 
         <Tabs defaultValue="overview" className="space-y-6">
           {/* Tab Selectors - Hidden when printing */}
-          <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4 print:hidden">
+          <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-5 print:hidden">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="career">Career Path</TabsTrigger>
             <TabsTrigger value="roadmap">Action Plan</TabsTrigger>
             <TabsTrigger value="resources">Resources</TabsTrigger>
+            <TabsTrigger value="review">Review Answers</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -489,6 +490,53 @@ export default function Results() {
                     No resources available for this domain yet.
                   </p>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Review Answers Tab */}
+          <TabsContent value="review" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Review Answers</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {attempt.responses?.map((response, index) => (
+                  <div key={response.id} className="p-4 border rounded-lg space-y-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1">
+                        <span className="text-sm text-muted-foreground">Question {index + 1}</span>
+                        <p className="font-medium">{response.question.question_text}</p>
+                      </div>
+                      {response.is_correct ? (
+                        <CheckCircle2 className="h-6 w-6 text-green-500 shrink-0" />
+                      ) : (
+                        <XCircle className="h-6 w-6 text-red-500 shrink-0" />
+                      )}
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4 pt-2">
+                      <div className={`p-3 rounded-md border ${response.selected_answer === response.question.correct_answer
+                          ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-900"
+                          : "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-900"
+                        }`}>
+                        <span className="text-xs font-semibold uppercase text-muted-foreground block mb-1">
+                          Your Answer
+                        </span>
+                        <p>{response.question[`option_${response.selected_answer}`]}</p>
+                      </div>
+
+                      {!response.is_correct && (
+                        <div className="p-3 rounded-md border bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-900">
+                          <span className="text-xs font-semibold uppercase text-muted-foreground block mb-1">
+                            Correct Answer
+                          </span>
+                          <p>{response.question[`option_${response.question.correct_answer}`]}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </TabsContent>

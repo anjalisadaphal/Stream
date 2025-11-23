@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from sqlalchemy.orm import selectinload
 from typing import List
 from uuid import UUID
 from .. import models, schemas, deps
@@ -107,6 +108,27 @@ async def create_attempt(
     await db.refresh(new_attempt)
     
     return new_attempt
+
+@router.get("/attempts/{attempt_id}", response_model=schemas.QuizAttemptDetail)
+async def get_attempt_details(
+    attempt_id: UUID,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user)
+):
+    result = await db.execute(
+        select(models.QuizAttempt)
+        .where(models.QuizAttempt.id == attempt_id)
+        .where(models.QuizAttempt.user_id == current_user.id)
+        .options(
+            selectinload(models.QuizAttempt.responses).selectinload(models.QuizResponse.question)
+        )
+    )
+    attempt = result.scalars().first()
+    
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+        
+    return attempt
 
 @router.get("/attempts/{attempt_id}/ai-guidance")
 async def get_ai_guidance(

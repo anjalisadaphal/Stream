@@ -67,6 +67,13 @@ class Question(QuestionBase):
     class Config:
         from_attributes = True
 
+class QuestionDetail(QuestionBase):
+    id: UUID4
+    correct_answer: int
+    
+    class Config:
+        from_attributes = True
+
 # Quiz Attempt Schemas
 class QuizResponseBase(BaseModel):
     question_id: UUID4
@@ -79,6 +86,14 @@ class QuizResponse(QuizResponseBase):
     id: UUID4
     is_correct: bool
     created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class QuizResponseDetail(QuizResponseBase):
+    id: UUID4
+    is_correct: bool
+    question: QuestionDetail
 
     class Config:
         from_attributes = True
@@ -99,6 +114,12 @@ class QuizAttempt(QuizAttemptBase):
     share_id: UUID4
     completed_at: datetime
     # responses: List[QuizResponse] = [] # Optional to include responses
+
+    class Config:
+        from_attributes = True
+
+class QuizAttemptDetail(QuizAttempt):
+    responses: List[QuizResponseDetail]
 
     class Config:
         from_attributes = True
