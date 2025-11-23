@@ -265,7 +265,7 @@ export default function Home() {
 
       {/* CTA Section */}
       <section className="container py-16 md:py-24 px-4">
-        <Card className="relative overflow-hidden glass-card border-2 neon-border hover-glow">
+        <Card className="relative overflow-hidden glass-card border-2 neon-border hover-glow max-w-4xl mx-auto">
           <div className="absolute inset-0 animated-gradient opacity-30" />
           <div className="absolute inset-0 opacity-20">
             <div className="absolute top-0 left-0 w-64 h-64 bg-primary/30 rounded-full filter blur-3xl animate-pulse" />
@@ -273,7 +273,7 @@ export default function Home() {
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-chart-3/20 rounded-full filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
           </div>
 
-          <CardContent className="relative py-12 md:py-16 px-6 md:px-8 text-center">
+          <CardContent className="relative py-8 md:py-12 px-4 md:px-6 text-center">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 md:mb-6 gradient-text shimmer">
               Ready to Start Your Tech Journey?
             </h2>
