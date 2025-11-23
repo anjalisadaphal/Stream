@@ -183,8 +183,7 @@ questions_data = [
         "domain": QuizDomain.tester,
         "difficulty": DifficultyLevel.medium
     },
-]
-questions_data_batch_1 = [
+
     # ------------------ DSA ------------------
     {
         "question_text": "Which data structure uses FIFO (First In First Out)?",
@@ -397,10 +396,8 @@ questions_data_batch_1 = [
         "correct_answer": 1,
         "domain": QuizDomain.tester,
         "difficulty": DifficultyLevel.medium
-    }
-]
+    },
 
-questions_data_batches_2_to_5 = [
     # ------------------ Batch 2 (Questions 21–40) ------------------
 
     # DSA
