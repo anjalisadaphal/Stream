@@ -367,3 +367,43 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--primary) / 0.5);
 }
+/* ------------------------------
+    PRINT STYLES FOR RESULTS PAGE
+--------------------------------*/
+@media print {
+  /* Force white background and black text */
+  *, *::before, *::after {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  
+  /* Page setup */
+  @page {
+    margin: 1.5cm;
+    size: A4;
+  }
+  
+  /* Hide interactive elements */
+  button, .print\:hidden {
+    display: none !important;
+  }
+  
+  /* Full width for print */
+  .container {
+    max-width: none !important;
+    width: 100% !important;
+  }
+  
+  /* Clean text and headings */
+  h1, h2, h3, h4, h5, h6 {
+    color: black !important;
+    page-break-after: avoid;
+  }
+  
+  /* Avoid page breaks inside important elements */
+  .card, [data-card] {
+    page-break-inside: avoid;
+  }
+}

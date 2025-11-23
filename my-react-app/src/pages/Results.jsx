@@ -217,23 +217,36 @@ export default function Results() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      {/* Navigation - Hidden when printing */}
+      <div className="print:hidden">
+        <Navbar />
+      </div>
 
-      <div className="container py-8 space-y-8 max-w-7xl mx-auto">
+      {/* Print-Only Header - Only visible when printing */}
+      <div className="hidden print:block print:text-center print:py-8 print:border-b-2 print:border-black print:mb-8">
+        <h1 className="print:text-4xl print:font-bold print:mb-2">STREAM</h1>
+        <p className="print:text-lg print:font-semibold">Official Career Guidance Report</p>
+        <p className="print:text-sm print:text-gray-600 print:mt-2">
+          Generated on: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </p>
+      </div>
+
+      <div className="container py-8 space-y-8 max-w-7xl mx-auto print:max-w-none print:px-8 print:py-0 print:bg-white print:text-black">
         {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="flex items-center justify-center gap-2">
+        <div className="text-center space-y-4 print:mb-8">
+          <div className="flex items-center justify-center gap-2 print:hidden">
             <Badge className="bg-accent text-accent-foreground">Assessment Complete</Badge>
             {aiLoading && <Badge variant="outline">Generating AI Insights...</Badge>}
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold">Your Career Path Results</h1>
-          <p className="text-muted-foreground text-lg">
+          <h1 className="text-4xl md:text-5xl font-bold print:text-3xl print:text-black">Your Career Path Results</h1>
+          <p className="text-muted-foreground text-lg print:text-black print:text-base">
             Based on your assessment, here's your personalized career guidance
           </p>
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4">
+          {/* Tab Selectors - Hidden when printing */}
+          <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4 print:hidden">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="career">Career Path</TabsTrigger>
             <TabsTrigger value="roadmap">Action Plan</TabsTrigger>
@@ -241,10 +254,10 @@ export default function Results() {
           </TabsList>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
+          <TabsContent value="overview" className="space-y-6 print:block">
+            <div className="grid md:grid-cols-2 gap-6 print:grid-cols-1 print:gap-4">
               {/* Recommendation Card */}
-              <Card className="border-2 border-primary">
+              <Card className="border-2 border-primary print:border print:border-black print:shadow-none print:bg-white">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Award className="h-6 w-6 text-primary" />
@@ -257,7 +270,7 @@ export default function Results() {
                       <DomainIcon className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold capitalize">{domainData.name}</h3>
+                      <h3 className="text-2xl font-bold capitalize print:text-black">{domainData.name}</h3>
                       <p className="text-sm text-muted-foreground">Best match for your profile</p>
                     </div>
                   </div>
@@ -284,7 +297,7 @@ export default function Results() {
               </Card>
 
               {/* Radar Chart */}
-              <Card>
+              <Card className="print:border print:border-black print:shadow-none print:bg-white">
                 <CardHeader>
                   <CardTitle>Skills Assessment</CardTitle>
                 </CardHeader>
@@ -450,7 +463,7 @@ export default function Results() {
                 {resources.length > 0 ? (
                   <div className="grid md:grid-cols-2 gap-4">
                     {resources.map((resource, index) => (
-                      <div key={resource.id || index} className="p-4 border rounded-lg hover:border-primary/50 transition-all">
+                      <div key={resource.id || index} className="p-4 border rounded-lg hover:border-primary/50 transition-all print:border-black print:shadow-none">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex-1">
                             <h4 className="font-semibold mb-1">{resource.title}</h4>
@@ -476,8 +489,8 @@ export default function Results() {
           </TabsContent>
         </Tabs>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-4 justify-center pt-8">
+        {/* Action Buttons - Hidden when printing */}
+        <div className="flex flex-wrap gap-4 justify-center pt-8 print:hidden">
           <Button size="lg" className="bg-accent hover:bg-accent/90" onClick={() => navigate("/dashboard")}>
             View Dashboard
           </Button>
