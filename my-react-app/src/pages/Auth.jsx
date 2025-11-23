@@ -1,5 +1,3 @@
-// [REPLACE] src/pages/Auth.jsx
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
+import ParticlesBackground from "@/components/ParticlesBackground";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -38,7 +37,6 @@ const Auth = () => {
         description: "Account created and signed in successfully.",
       });
 
-      // Navigation handled by useEffect
     } catch (error) {
       toast({
         title: "Error",
@@ -62,7 +60,6 @@ const Auth = () => {
         description: "You have successfully signed in.",
       });
 
-      // Navigation handled by useEffect
     } catch (error) {
       console.error("Sign in error:", error);
       let errorMessage = "Invalid email or password. Please check your credentials and try again.";
@@ -83,8 +80,9 @@ const Auth = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center">
+        <ParticlesBackground />
+        <Card className="w-full max-w-md glass-card relative z-10">
           <CardContent className="pt-6 pb-6 flex items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </CardContent>
@@ -94,10 +92,13 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
-      <Card className="w-full max-w-md shadow-xl border-2">
+    <div className="min-h-screen flex items-center justify-center relative p-4">
+      {/* 3D Particles Background */}
+      <ParticlesBackground />
+
+      <Card className="w-full max-w-md glass-card shadow-2xl border-2 neon-border-hover hover-lift relative z-10 fade-in">
         <CardHeader className="space-y-1 pb-4">
-          <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-primary via-accent to-chart-3 bg-clip-text text-transparent">
+          <CardTitle className="text-3xl font-bold text-center gradient-text shimmer">
             STREAM
           </CardTitle>
           <CardDescription className="text-center text-base">
@@ -106,9 +107,9 @@ const Auth = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 glass">
+              <TabsTrigger value="signin" className="data-[state=active]:glass-hover">Sign In</TabsTrigger>
+              <TabsTrigger value="signup" className="data-[state=active]:glass-hover">Sign Up</TabsTrigger>
             </TabsList>
 
             <TabsContent value="signin" className="space-y-4">
@@ -124,6 +125,7 @@ const Auth = () => {
                     required
                     disabled={isLoading}
                     autoComplete="email"
+                    className="glass border-primary/20 focus:border-primary/50"
                   />
                 </div>
                 <div className="space-y-2">
@@ -138,9 +140,10 @@ const Auth = () => {
                     minLength={6}
                     disabled={isLoading}
                     autoComplete="current-password"
+                    className="glass border-primary/20 focus:border-primary/50"
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full hover-lift hover-glow" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
@@ -160,6 +163,7 @@ const Auth = () => {
                     required
                     disabled={isLoading}
                     autoComplete="name"
+                    className="glass border-primary/20 focus:border-primary/50"
                   />
                 </div>
                 <div className="space-y-2">
@@ -173,6 +177,7 @@ const Auth = () => {
                     required
                     disabled={isLoading}
                     autoComplete="email"
+                    className="glass border-primary/20 focus:border-primary/50"
                   />
                 </div>
                 <div className="space-y-2">
@@ -187,10 +192,11 @@ const Auth = () => {
                     minLength={6}
                     disabled={isLoading}
                     autoComplete="new-password"
+                    className="glass border-primary/20 focus:border-primary/50"
                   />
                   <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full hover-lift hover-glow" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {isLoading ? "Creating account..." : "Create Account"}
                 </Button>
@@ -199,7 +205,7 @@ const Auth = () => {
           </Tabs>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Button variant="link" onClick={() => navigate("/")}>
+          <Button variant="link" onClick={() => navigate("/")} className="hover:gradient-text-primary">
             Back to Home
           </Button>
         </CardFooter>
