@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CursorFollower } from "@/components/CursorFollower";
-import ThreeDBackground from "@/components/ThreeDBackground";
+import ParticlesBackground from "@/components/ParticlesBackground";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Quiz from "./pages/Quiz";
@@ -32,7 +32,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <CursorFollower />
-      <ThreeDBackground />
+      <ParticlesBackground />
       <Toaster />
       <Sonner />
       <AuthProvider>

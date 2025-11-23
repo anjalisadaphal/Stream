@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
-import ParticlesBackground from "@/components/ParticlesBackground";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -31,12 +30,10 @@ const Auth = () => {
 
     try {
       await register(email, password, fullName);
-
       toast({
         title: "Success!",
         description: "Account created and signed in successfully.",
       });
-
     } catch (error) {
       toast({
         title: "Error",
@@ -54,20 +51,16 @@ const Auth = () => {
 
     try {
       await login(email, password);
-
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
       });
-
     } catch (error) {
       console.error("Sign in error:", error);
       let errorMessage = "Invalid email or password. Please check your credentials and try again.";
-
       if (error.response?.data?.detail) {
         errorMessage = error.response.data.detail;
       }
-
       toast({
         title: "Sign In Failed",
         description: errorMessage,
@@ -81,7 +74,6 @@ const Auth = () => {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <ParticlesBackground />
         <Card className="w-full max-w-md glass-card relative z-10">
           <CardContent className="pt-6 pb-6 flex items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -93,9 +85,6 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative p-4">
-      {/* 3D Particles Background */}
-      <ParticlesBackground />
-
       <Card className="w-full max-w-md glass-card shadow-2xl border-2 neon-border-hover hover-lift relative z-10 fade-in">
         <CardHeader className="space-y-1 pb-4">
           <CardTitle className="text-3xl font-bold text-center gradient-text shimmer">
